@@ -177,10 +177,19 @@
   <p class="subtitle">Write your essay, track your word count, and export it as a PDF when you're done.</p>
 
   <div class="task-select">
-    <label>Task type:
+    <label>Cambridge book:
+      <input type="number" id="camBook" min="1" max="20" placeholder="e.g. 17" style="width:80px;">
+    </label>
+    <label>Task number:
+      <select id="taskNumber">
+        <option value="1">Task 1</option>
+        <option value="2" selected>Task 2</option>
+      </select>
+    </label>
+    <label>Word target:
       <select id="taskType">
-        <option value="150">Task 1 (min. 150 words)</option>
-        <option value="250" selected>Task 2 (min. 250 words)</option>
+        <option value="150">150 words (Task 1)</option>
+        <option value="250" selected>250 words (Task 2)</option>
         <option value="custom">Custom</option>
       </select>
     </label>
@@ -223,6 +232,8 @@
   const charCountEl = document.getElementById('charCount');
   const limitNote = document.getElementById('limitNote');
   const taskType = document.getElementById('taskType');
+  const camBook = document.getElementById('camBook');
+  const taskNumber = document.getElementById('taskNumber');
   const spellToggle = document.getElementById('spellToggle');
   const promptBox = document.getElementById('prompt');
   const clearBtn = document.getElementById('clearBtn');
@@ -256,6 +267,12 @@
 
   essay.addEventListener('input', updateCounts);
   taskType.addEventListener('change', updateCounts);
+
+  taskNumber.addEventListener('change', () => {
+    if (taskNumber.value === '1') taskType.value = '150';
+    else taskType.value = '250';
+    updateCounts();
+  });
 
   spellToggle.addEventListener('change', () => {
     essay.setAttribute('spellcheck', spellToggle.checked ? 'true' : 'false');
@@ -307,9 +324,15 @@
     const maxWidth = 495;
     let cursorY = marginTop;
 
+    const bookNumHeader = camBook.value.trim();
+    const taskNumHeader = taskNumber.value.trim();
+    const titleText = bookNumHeader
+      ? `Cambridge ${bookNumHeader} — Task ${taskNumHeader}`
+      : `IELTS Writing Practice — Task ${taskNumHeader}`;
+
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('IELTS Writing Practice', marginLeft, cursorY);
+    doc.text(titleText, marginLeft, cursorY);
     cursorY += 22;
 
     const promptText = promptBox.value.trim();
@@ -343,7 +366,15 @@
       cursorY += 16;
     }
 
-    doc.save('ielts-essay.pdf');
+    const bookNum = camBook.value.trim();
+    const taskNum = taskNumber.value.trim();
+    let filename;
+    if (bookNum) {
+      filename = `Cam_${bookNum}_Task_${taskNum}.pdf`;
+    } else {
+      filename = `IELTS_Task_${taskNum}.pdf`;
+    }
+    doc.save(filename);
   });
 
   updateCounts();
