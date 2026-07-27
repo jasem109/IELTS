@@ -669,23 +669,16 @@
     }
   });
 
-  // ---------- PDF export ----------
+  // ---------- PDF export (single page, examiner strip reserved at bottom) ----------
   pdfBtn.addEventListener('click', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const marginLeft = 50;
     const marginRight = 545;
-    const marginTop = 60;
-    const maxWidth = 495;
-    let cursorY = marginTop;
+    const marginTop = 55;
+    const marginBottom = 35;
+    const maxWidth = marginRight - marginLeft;
     const pageHeight = doc.internal.pageSize.height;
-
-    function ensureSpace(neededHeight) {
-      if (cursorY + neededHeight > pageHeight - 40) {
-        doc.addPage();
-        cursorY = marginTop;
-      }
-    }
 
     const bookNumHeader = camBook.value.trim();
     const testNoHeader = testNo.value.trim();
@@ -695,110 +688,127 @@
       : `IELTS Writing Practice — Task ${taskNumHeader}`;
     if (testNoHeader) titleText += `  |  Test No. ${testNoHeader}`;
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text(titleText, marginLeft, cursorY);
-    cursorY += 22;
+    let cursorY = marginTop;
 
-    const promptText = promptBox.value.trim();
-    if (promptText) {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(11);
-      doc.text('Prompt:', marginLeft, cursorY);
-      cursorY += 16;
-      doc.setFont('helvetica', 'normal');
-      const promptLines = doc.splitTextToSize(promptText, maxWidth);
-      doc.text(promptLines, marginLeft, cursorY);
-      cursorY += promptLines.length * 14 + 10;
-    }
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(11);
-    doc.text(`Word count: ${wordCountEl.textContent}`, marginLeft, cursorY);
-    cursorY += 20;
-
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(12);
-    const essayLines = doc.splitTextToSize(essay.value || '(No text written)', maxWidth);
-
-    for (let i = 0; i < essayLines.length; i++) {
-      if (cursorY > pageHeight - 50) {
-        doc.addPage();
-        cursorY = marginTop;
-      }
-      doc.text(essayLines[i], marginLeft, cursorY);
-      cursorY += 16;
-    }
-
-    // ---------- Examiner section ----------
-    doc.addPage();
-    cursorY = marginTop;
-
+    // ---- Header ----
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(13);
-    doc.text('FOR EXAMINER USE ONLY', marginLeft, cursorY);
-    cursorY += 10;
+    doc.text(titleText, marginLeft, cursorY);
+    cursorY += 18;
+
+    const promptText = promptBox.value.trim();
+    let promptLines = [];
+    if (promptText) {
+      doc.setFontSize(9.5);
+      promptLines = doc.splitTextToSize('Prompt: ' + promptText, maxWidth);
+    }
+    if (promptLines.length) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9.5);
+      doc.text(promptLines, marginLeft, cursorY);
+      cursorY += promptLines.length * 11 + 8;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(`Word count: ${wordCountEl.textContent}`, marginLeft, cursorY);
+    cursorY += 14;
+
+    const essayStartY = cursorY;
+
+    // ---- Reserved bottom examiner strip (compact, fixed height) ----
+    const examinerHeight = 130;
+    const examinerTop = pageHeight - marginBottom - examinerHeight;
+    const availableForEssay = examinerTop - essayStartY - 10;
+
+    // ---- Auto-shrink essay font to guarantee everything fits on one page ----
+    const rawEssay = essay.value || '(No text written)';
+    const candidates = [
+      { size: 11.5, lh: 15 }, { size: 11, lh: 14.5 }, { size: 10.5, lh: 14 },
+      { size: 10, lh: 13 }, { size: 9.5, lh: 12.3 }, { size: 9, lh: 11.7 },
+      { size: 8.5, lh: 11 }, { size: 8, lh: 10.4 }, { size: 7.5, lh: 9.8 },
+      { size: 7, lh: 9.2 }
+    ];
+    let chosen = candidates[candidates.length - 1];
+    let chosenLines = [];
+    for (const c of candidates) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(c.size);
+      const lines = doc.splitTextToSize(rawEssay, maxWidth);
+      if (lines.length * c.lh <= availableForEssay) {
+        chosen = c;
+        chosenLines = lines;
+        break;
+      }
+      chosenLines = lines; // fallback: smallest size tried so far
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(chosen.size);
+    let ey = essayStartY;
+    for (let i = 0; i < chosenLines.length; i++) {
+      doc.text(chosenLines[i], marginLeft, ey);
+      ey += chosen.lh;
+    }
+
+    // ---- Examiner section (compact, anchored to bottom of the same page) ----
+    let exY = examinerTop;
+    doc.setDrawColor(120);
     doc.setLineWidth(1);
-    doc.line(marginLeft, cursorY, marginRight, cursorY);
-    cursorY += 26;
+    doc.line(marginLeft, exY, marginRight, exY);
+    exY += 13;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text('FOR EXAMINER USE ONLY', marginLeft, exY);
+    exY += 14;
 
     const criteriaLabels = [
       taskNumHeader === '1' ? 'Task Achievement' : 'Task Response',
-      'Coherence and Cohesion',
+      'Coherence & Cohesion',
       'Lexical Resource',
-      'Grammatical Range and Accuracy'
+      'Grammar Range & Accuracy',
+      'Overall Band'
     ];
+    const boxCount = criteriaLabels.length;
+    const gap = 8;
+    const boxWidth = (maxWidth - gap * (boxCount - 1)) / boxCount;
+    const boxHeight = 24;
 
-    doc.setFontSize(11);
-    const boxWidth = 70;
-    const boxHeight = 26;
-    criteriaLabels.forEach((label) => {
-      ensureSpace(boxHeight + 14);
+    criteriaLabels.forEach((label, i) => {
+      const bx = marginLeft + i * (boxWidth + gap);
       doc.setFont('helvetica', 'normal');
-      doc.text(label, marginLeft, cursorY + boxHeight / 2 + 4);
+      doc.setFontSize(7.3);
+      const labelLines = doc.splitTextToSize(label, boxWidth);
+      doc.text(labelLines, bx, exY);
       doc.setDrawColor(120);
-      doc.rect(marginRight - boxWidth, cursorY, boxWidth, boxHeight);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text('Band score', marginRight - boxWidth, cursorY - 4);
-      doc.setFontSize(11);
-      cursorY += boxHeight + 14;
+      doc.setLineWidth(i === boxCount - 1 ? 1.2 : 0.8);
+      doc.rect(bx, exY + 14, boxWidth, boxHeight);
     });
+    exY += 14 + boxHeight + 14;
 
-    ensureSpace(40);
     doc.setFont('helvetica', 'bold');
-    doc.text('Overall Band Score', marginLeft, cursorY + boxHeight / 2 + 4);
-    doc.setLineWidth(1.2);
-    doc.rect(marginRight - boxWidth, cursorY, boxWidth, boxHeight);
-    doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    doc.text('Overall band', marginRight - boxWidth, cursorY - 4);
-    doc.setFontSize(11);
-    cursorY += boxHeight + 30;
-
-    ensureSpace(120);
-    doc.setFont('helvetica', 'bold');
-    doc.text("Examiner's Comments:", marginLeft, cursorY);
-    cursorY += 22;
-    doc.setFont('helvetica', 'normal');
+    doc.text("Examiner's Comments:", marginLeft, exY);
+    exY += 10;
     doc.setDrawColor(190);
-    for (let i = 0; i < 6; i++) {
-      ensureSpace(24);
-      doc.line(marginLeft, cursorY, marginRight, cursorY);
-      cursorY += 24;
+    doc.setLineWidth(0.6);
+    for (let i = 0; i < 2; i++) {
+      exY += 13;
+      doc.line(marginLeft, exY, marginRight, exY);
     }
+    exY += 22;
 
-    cursorY += 20;
-    ensureSpace(60);
     doc.setDrawColor(120);
-    doc.line(marginLeft, cursorY, marginLeft + 200, cursorY);
-    doc.line(marginLeft + 260, cursorY, marginLeft + 400, cursorY);
-    doc.line(marginLeft + 420, cursorY, marginRight, cursorY);
+    doc.setLineWidth(0.8);
+    doc.line(marginLeft, exY, marginLeft + 160, exY);
+    doc.line(marginLeft + 210, exY, marginLeft + 340, exY);
+    doc.line(marginLeft + 370, exY, marginRight, exY);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text('Examiner Name', marginLeft, cursorY + 12);
-    doc.text('Signature', marginLeft + 260, cursorY + 12);
-    doc.text('Date', marginLeft + 420, cursorY + 12);
+    doc.setFontSize(7.5);
+    doc.text('Examiner Name', marginLeft, exY + 10);
+    doc.text('Signature', marginLeft + 210, exY + 10);
+    doc.text('Date', marginLeft + 370, exY + 10);
 
     const bookNum = camBook.value.trim();
     const taskNum = taskNumber.value.trim();
