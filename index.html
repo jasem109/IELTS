@@ -163,6 +163,34 @@
   .key-status { font-size: 12px; margin-top: 6px; }
   .key-saved { color: #2a8a4a; }
   .key-missing { color: #999; }
+
+  .chart-upload-wrap {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: -2px 0 14px;
+    padding: 10px 12px;
+    border: 1px dashed #c7cfd7;
+    border-radius: 8px;
+    background: #fafbfc;
+  }
+  body.dark .chart-upload-wrap { background: #1a2027; border-color: #3a444e; }
+  .chart-upload-wrap.active { display: flex; }
+  .chart-upload-label { font-size: 13px; color: #444; display: flex; flex-direction: column; gap: 2px; }
+  body.dark .chart-upload-label { color: #ccc; }
+  .chart-upload-label small { color: #888; font-weight: 400; }
+  body.dark .chart-upload-label small { color: #7d8790; }
+  .chart-preview-wrap { display: none; align-items: center; gap: 10px; }
+  .chart-preview-wrap.shown { display: flex; }
+  .chart-preview-wrap img {
+    max-height: 70px; max-width: 140px; border-radius: 4px; border: 1px solid #ddd; object-fit: contain; background: #fff;
+  }
+  body.dark .chart-preview-wrap img { border-color: #444; }
+  .chart-remove-btn {
+    background: #eee; color: #b23b3b; padding: 4px 9px; font-size: 12px; border-radius: 5px;
+  }
+  body.dark .chart-remove-btn { background: #2a323a; }
 </style>
 </head>
 <body>
@@ -217,6 +245,18 @@
   </div>
 
   <textarea id="prompt" placeholder="Paste or type your essay question / prompt here (required for AI marking)..."></textarea>
+
+  <div class="chart-upload-wrap" id="chartUploadWrap">
+    <label class="chart-upload-label">
+      Task 1 chart / diagram (optional)
+      <small>Uploaded here, it will be printed on the PDF next to the prompt.</small>
+    </label>
+    <input type="file" id="chartUpload" accept="image/*">
+    <div class="chart-preview-wrap" id="chartPreviewWrap">
+      <img id="chartPreviewImg" alt="Chart preview">
+      <button type="button" class="chart-remove-btn" id="removeChartBtn">Remove</button>
+    </div>
+  </div>
 
   <div class="toolbar">
     <div class="stats">
@@ -295,12 +335,19 @@
   const clearKeyBtn = document.getElementById('clearKeyBtn');
   const keyStatus = document.getElementById('keyStatus');
   const apiSettings = document.getElementById('apiSettings');
+  const chartUploadWrap = document.getElementById('chartUploadWrap');
+  const chartUpload = document.getElementById('chartUpload');
+  const chartPreviewWrap = document.getElementById('chartPreviewWrap');
+  const chartPreviewImg = document.getElementById('chartPreviewImg');
+  const removeChartBtn = document.getElementById('removeChartBtn');
 
   const STORAGE_KEY = 'ielts_draft_v1';
   const DARK_KEY = 'ielts_dark_v1';
   const API_KEY_STORAGE = 'ielts_gemini_key_v1';
 
   let writingStartTime = null;
+  let chartImageDataUrl = null;
+  let chartImageDims = null; // { w, h } in px, used to keep aspect ratio in the PDF
 
   function getMinWords() {
     if (taskType.value === '150') return 150;
@@ -352,6 +399,8 @@
     else taskType.value = '250';
     updateCounts();
     setDefaultCountdown();
+    updateChartVisibility();
+    autosaveDraft();
   });
 
   spellToggle.addEventListener('change', () => {
@@ -381,6 +430,68 @@
     try { localStorage.setItem(DARK_KEY, isDark ? '1' : '0'); } catch (e) {}
   });
 
+  // ---------- Task 1 chart/diagram upload ----------
+  function updateChartVisibility() {
+    chartUploadWrap.classList.toggle('active', taskNumber.value === '1');
+  }
+
+  function showChartPreview() {
+    if (chartImageDataUrl) {
+      chartPreviewImg.src = chartImageDataUrl;
+      chartPreviewWrap.classList.add('shown');
+    } else {
+      chartPreviewWrap.classList.remove('shown');
+    }
+  }
+
+  function loadImageFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Downscale large images so the draft stays a reasonable size and the PDF stays sharp but light.
+        const maxDim = 1100;
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          const scale = Math.min(maxDim / w, maxDim / h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        callback(dataUrl, { w, h });
+      };
+      img.onerror = () => alert('Could not read that image file.');
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  chartUpload.addEventListener('change', () => {
+    const file = chartUpload.files && chartUpload.files[0];
+    if (!file) return;
+    loadImageFile(file, (dataUrl, dims) => {
+      chartImageDataUrl = dataUrl;
+      chartImageDims = dims;
+      showChartPreview();
+      autosaveDraft();
+    });
+  });
+
+  removeChartBtn.addEventListener('click', () => {
+    chartImageDataUrl = null;
+    chartImageDims = null;
+    chartUpload.value = '';
+    showChartPreview();
+    autosaveDraft();
+  });
+
   // ---------- Autosave / restore ----------
   function autosaveDraft() {
     try {
@@ -391,6 +502,8 @@
         testNo: testNo.value,
         taskNumber: taskNumber.value,
         taskType: taskType.value,
+        chartImage: chartImageDataUrl,
+        chartImageDims: chartImageDims,
         savedAt: Date.now()
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
@@ -417,6 +530,11 @@
         testNo.value = draft.testNo || '';
         if (draft.taskNumber) taskNumber.value = draft.taskNumber;
         if (draft.taskType) taskType.value = draft.taskType;
+        if (draft.chartImage) {
+          chartImageDataUrl = draft.chartImage;
+          chartImageDims = draft.chartImageDims || null;
+          showChartPreview();
+        }
         restoreBanner.style.display = 'flex';
         writingStartTime = Date.now();
       }
@@ -709,6 +827,23 @@
       cursorY += promptLines.length * 11 + 8;
     }
 
+    // ---- Task 1 chart/diagram, printed right under the prompt ----
+    const hasChart = taskNumHeader === '1' && chartImageDataUrl && chartImageDims;
+    if (hasChart) {
+      const maxImgWidth = maxWidth;
+      const maxImgHeight = 160;
+      const ratio = chartImageDims.w / chartImageDims.h;
+      let dispW = maxImgWidth;
+      let dispH = dispW / ratio;
+      if (dispH > maxImgHeight) {
+        dispH = maxImgHeight;
+        dispW = dispH * ratio;
+      }
+      const imgX = marginLeft + (maxWidth - dispW) / 2;
+      doc.addImage(chartImageDataUrl, 'JPEG', imgX, cursorY, dispW, dispH);
+      cursorY += dispH + 12;
+    }
+
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(9.5);
     doc.text(`Word count: ${wordCountEl.textContent}`, marginLeft, cursorY);
@@ -825,6 +960,7 @@
   } catch (e) {}
   restoreDraft();
   setDefaultCountdown();
+  updateChartVisibility();
   updateCounts();
 </script>
 </body>
