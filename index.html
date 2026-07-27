@@ -195,6 +195,9 @@
   </div>
 
   <div class="task-select">
+    <label>Test No.:
+      <input type="number" id="testNo" min="1" placeholder="e.g. 3" style="width:70px;">
+    </label>
     <label>Cambridge book:
       <input type="number" id="camBook" min="1" max="20" placeholder="e.g. 17" style="width:80px;">
     </label>
@@ -269,6 +272,7 @@
   const limitNote = document.getElementById('limitNote');
   const taskType = document.getElementById('taskType');
   const camBook = document.getElementById('camBook');
+  const testNo = document.getElementById('testNo');
   const taskNumber = document.getElementById('taskNumber');
   const spellToggle = document.getElementById('spellToggle');
   const promptBox = document.getElementById('prompt');
@@ -384,6 +388,7 @@
         essay: essay.value,
         prompt: promptBox.value,
         camBook: camBook.value,
+        testNo: testNo.value,
         taskNumber: taskNumber.value,
         taskType: taskType.value,
         savedAt: Date.now()
@@ -396,6 +401,7 @@
   }
   promptBox.addEventListener('input', autosaveDraft);
   camBook.addEventListener('input', autosaveDraft);
+  testNo.addEventListener('input', autosaveDraft);
   taskNumber.addEventListener('change', autosaveDraft);
   taskType.addEventListener('change', autosaveDraft);
 
@@ -408,6 +414,7 @@
         essay.value = draft.essay;
         promptBox.value = draft.prompt || '';
         camBook.value = draft.camBook || '';
+        testNo.value = draft.testNo || '';
         if (draft.taskNumber) taskNumber.value = draft.taskNumber;
         if (draft.taskType) taskType.value = draft.taskType;
         restoreBanner.style.display = 'flex';
@@ -667,15 +674,26 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
     const marginLeft = 50;
+    const marginRight = 545;
     const marginTop = 60;
     const maxWidth = 495;
     let cursorY = marginTop;
+    const pageHeight = doc.internal.pageSize.height;
+
+    function ensureSpace(neededHeight) {
+      if (cursorY + neededHeight > pageHeight - 40) {
+        doc.addPage();
+        cursorY = marginTop;
+      }
+    }
 
     const bookNumHeader = camBook.value.trim();
+    const testNoHeader = testNo.value.trim();
     const taskNumHeader = taskNumber.value.trim();
-    const titleText = bookNumHeader
+    let titleText = bookNumHeader
       ? `Cambridge ${bookNumHeader} — Task ${taskNumHeader}`
       : `IELTS Writing Practice — Task ${taskNumHeader}`;
+    if (testNoHeader) titleText += `  |  Test No. ${testNoHeader}`;
 
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
@@ -703,7 +721,6 @@
     doc.setFontSize(12);
     const essayLines = doc.splitTextToSize(essay.value || '(No text written)', maxWidth);
 
-    const pageHeight = doc.internal.pageSize.height;
     for (let i = 0; i < essayLines.length; i++) {
       if (cursorY > pageHeight - 50) {
         doc.addPage();
@@ -713,9 +730,82 @@
       cursorY += 16;
     }
 
+    // ---------- Examiner section ----------
+    doc.addPage();
+    cursorY = marginTop;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text('FOR EXAMINER USE ONLY', marginLeft, cursorY);
+    cursorY += 10;
+    doc.setLineWidth(1);
+    doc.line(marginLeft, cursorY, marginRight, cursorY);
+    cursorY += 26;
+
+    const criteriaLabels = [
+      taskNumHeader === '1' ? 'Task Achievement' : 'Task Response',
+      'Coherence and Cohesion',
+      'Lexical Resource',
+      'Grammatical Range and Accuracy'
+    ];
+
+    doc.setFontSize(11);
+    const boxWidth = 70;
+    const boxHeight = 26;
+    criteriaLabels.forEach((label) => {
+      ensureSpace(boxHeight + 14);
+      doc.setFont('helvetica', 'normal');
+      doc.text(label, marginLeft, cursorY + boxHeight / 2 + 4);
+      doc.setDrawColor(120);
+      doc.rect(marginRight - boxWidth, cursorY, boxWidth, boxHeight);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text('Band score', marginRight - boxWidth, cursorY - 4);
+      doc.setFontSize(11);
+      cursorY += boxHeight + 14;
+    });
+
+    ensureSpace(40);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Overall Band Score', marginLeft, cursorY + boxHeight / 2 + 4);
+    doc.setLineWidth(1.2);
+    doc.rect(marginRight - boxWidth, cursorY, boxWidth, boxHeight);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Overall band', marginRight - boxWidth, cursorY - 4);
+    doc.setFontSize(11);
+    cursorY += boxHeight + 30;
+
+    ensureSpace(120);
+    doc.setFont('helvetica', 'bold');
+    doc.text("Examiner's Comments:", marginLeft, cursorY);
+    cursorY += 22;
+    doc.setFont('helvetica', 'normal');
+    doc.setDrawColor(190);
+    for (let i = 0; i < 6; i++) {
+      ensureSpace(24);
+      doc.line(marginLeft, cursorY, marginRight, cursorY);
+      cursorY += 24;
+    }
+
+    cursorY += 20;
+    ensureSpace(60);
+    doc.setDrawColor(120);
+    doc.line(marginLeft, cursorY, marginLeft + 200, cursorY);
+    doc.line(marginLeft + 260, cursorY, marginLeft + 400, cursorY);
+    doc.line(marginLeft + 420, cursorY, marginRight, cursorY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Examiner Name', marginLeft, cursorY + 12);
+    doc.text('Signature', marginLeft + 260, cursorY + 12);
+    doc.text('Date', marginLeft + 420, cursorY + 12);
+
     const bookNum = camBook.value.trim();
     const taskNum = taskNumber.value.trim();
-    const filename = bookNum ? `Cam_${bookNum}_Task_${taskNum}.pdf` : `IELTS_Task_${taskNum}.pdf`;
+    const testNumVal = testNo.value.trim();
+    let filename = bookNum ? `Cam_${bookNum}_Task_${taskNum}` : `IELTS_Task_${taskNum}`;
+    if (testNumVal) filename += `_Test_${testNumVal}`;
+    filename += '.pdf';
     doc.save(filename);
   });
 
