@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IELTS Speaking Practice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 20px;
+    color: #222;
+    transition: background .2s, color .2s;
+  }
+  body.dark { background: #14181c; color: #e4e6e8; }
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    padding: 24px 28px 28px;
+  }
+  body.dark .container { background: #1e242b; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  a.hub-link { display:inline-block; font-size: 12.5px; color: #5a3fa8; text-decoration: none; margin-bottom: 10px; }
+  body.dark a.hub-link { color: #b6a4e8; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: #5a3fa8; }
+  body.dark h1 { color: #b6a4e8; }
+  .subtitle { color: #667; font-size: 14px; margin: 0 0 18px; }
+  body.dark .subtitle { color: #9aa4ad; }
+  .icon-btn {
+    background: none; border: 1px solid #ccc; border-radius: 6px;
+    padding: 6px 10px; font-size: 13px; cursor: pointer; color: #333;
+  }
+  body.dark .icon-btn { border-color: #444; color: #e4e6e8; background: #262e36; }
+
+  .api-settings {
+    background: #f7f8fa; border: 1px solid #e6e9ec; border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 16px; font-size: 13px;
+  }
+  body.dark .api-settings { background: #20262d; border-color: #333; }
+  .api-settings summary { cursor: pointer; font-weight: 600; color: #5a3fa8; }
+  body.dark .api-settings summary { color: #b6a4e8; }
+  .api-settings .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  .api-settings input[type="password"] { flex: 1; min-width: 220px; padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; background:#fff; color:#222; }
+  body.dark .api-settings input[type="password"] { background: #262e36; color: #e4e6e8; border-color: #444; }
+  .api-settings p { margin: 8px 0 0; color: #667; font-size: 12px; line-height: 1.5; }
+  body.dark .api-settings p { color: #9aa4ad; }
+  .api-settings a { color: #5a3fa8; }
+  .key-status { font-size: 12px; margin-top: 6px; }
+  .key-saved { color: #2a8a4a; }
+  .key-missing { color: #999; }
+  .btn-secondary { background: #eee; color: #333; }
+  body.dark .btn-secondary { background: #2a323a; color: #e4e6e8; }
+  .btn-secondary:hover { background: #ddd; }
+  body.dark .btn-secondary:hover { background: #333d47; }
+
+  /* ---- Setup screen ---- */
+  .setup-card {
+    border: 1px solid #e6e9ec; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px;
+  }
+  body.dark .setup-card { border-color: #333; background: #20262d; }
+  .setup-card h2 { font-size: 15px; margin: 0 0 4px; color: #17406b; }
+  body.dark .setup-card h2 { color: #6ea8e0; }
+  .setup-card p.small { font-size: 12.5px; color: #778; margin: 0 0 14px; }
+  body.dark .setup-card p.small { color: #9aa4ad; }
+  .setup-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .setup-row label { font-size: 13px; color: #444; }
+  body.dark .setup-row label { color: #ccc; }
+  select {
+    padding: 7px 10px; border-radius: 6px; border: 1px solid #ccc; font-size: 14px; background: #fff; color: #222;
+  }
+  body.dark select { background: #262e36; color: #e4e6e8; border-color: #444; }
+  #aiTopicHint { background: #fff; color: #222; }
+  body.dark #aiTopicHint { background: #262e36; color: #e4e6e8; border-color: #444; }
+  .part-overview { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+  @media (max-width: 620px) { .part-overview { grid-template-columns: 1fr; } }
+  .part-chip { border: 1px solid #e6e9ec; border-radius: 8px; padding: 10px 12px; font-size: 12.5px; }
+  body.dark .part-chip { border-color: #333; }
+  .part-chip b { display: block; font-size: 13px; color: #5a3fa8; margin-bottom: 3px; }
+  body.dark .part-chip b { color: #b6a4e8; }
+  .part-chip span { color: #778; }
+  body.dark .part-chip span { color: #9aa4ad; }
+
+  button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 18px; font-size: 14px; font-weight: 600; }
+  .btn-primary { background: #5a3fa8; color: #fff; }
+  .btn-primary:hover { background: #472f8a; }
+  .btn-primary:disabled { background: #b3a4d9; cursor: not-allowed; }
+  .btn-danger { background: #b23b3b; color: #fff; }
+  .btn-danger:hover { background: #93302f; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* ---- Interview screen ---- */
+  .interview { display: none; }
+  .interview.active { display: block; }
+  .stage-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .stage-label {
+    font-size: 12.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #5a3fa8;
+  }
+  body.dark .stage-label { color: #b6a4e8; }
+  .stage-progress { font-size: 12.5px; color: #778; }
+  body.dark .stage-progress { color: #9aa4ad; }
+  .timer-pill {
+    font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 20px; background: #f0ecfa; color: #5a3fa8;
+  }
+  body.dark .timer-pill { background: #241f36; color: #b6a4e8; }
+  .timer-pill.warn { background: #fdf1e0; color: #97640c; }
+  body.dark .timer-pill.warn { background: #322a1a; color: #d6a94b; }
+  .timer-pill.danger { background: #fbe6e6; color: #b23b3b; }
+  body.dark .timer-pill.danger { background: #35201f; color: #e07a7a; }
+
+  .question-card {
+    border: 1px solid #e6e9ec; border-radius: 8px; padding: 18px 20px; margin-bottom: 16px; background: #fafbfc;
+  }
+  body.dark .question-card { background: #20262d; border-color: #333; }
+  .question-card .topic-tag { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: #778; font-weight: 700; margin-bottom: 6px; }
+  body.dark .question-card .topic-tag { color: #9aa4ad; }
+  .question-card .qtext { font-size: 16px; line-height: 1.55; color: #17203a; white-space: pre-line; }
+  body.dark .question-card .qtext { color: #eef1f4; }
+  .question-card .qtext.cue-card { font-weight: 600; }
+
+  .mic-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .rec-btn {
+    display: flex; align-items: center; gap: 8px; background: #b23b3b; color: #fff;
+  }
+  .rec-btn.recording { background: #7a2323; }
+  .rec-btn .dot { width: 9px; height: 9px; border-radius: 50%; background: #fff; }
+  .rec-btn.recording .dot { animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .mic-note { font-size: 12px; color: #999; }
+  audio.playback { height: 32px; max-width: 220px; }
+
+  textarea.transcript {
+    width: 100%; min-height: 90px; font-size: 14px; line-height: 1.55; padding: 10px 12px;
+    border-radius: 8px; border: 1px solid #ccc; font-family: inherit; resize: vertical;
+    background: #fff; color: #222; margin-bottom: 6px;
+  }
+  body.dark textarea.transcript { background: #262e36; color: #e4e6e8; border-color: #444; }
+  .transcript-note { font-size: 11.5px; color: #999; margin-bottom: 14px; }
+  .notes-box { width: 100%; min-height: 90px; font-size: 13.5px; padding: 10px 12px; border-radius: 8px; border: 1px dashed #c7cfd7; font-family: inherit; resize: vertical; background: #fafbfc; color: #444; margin-bottom: 6px; }
+  body.dark .notes-box { background: #1a2027; color: #ccc; border-color: #3a444e; }
+
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+
+  /* ---- Review / summary screen ---- */
+  .review { display: none; }
+  .review.active { display: block; }
+  .review-entry { border-bottom: 1px solid #eee; padding: 12px 0; }
+  body.dark .review-entry { border-color: #333; }
+  .review-entry .part-tag { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: #5a3fa8; }
+  body.dark .review-entry .part-tag { color: #b6a4e8; }
+  .review-entry .q { font-size: 13.5px; font-weight: 600; color: #17203a; margin: 4px 0; white-space: pre-line; }
+  body.dark .review-entry .q { color: #eef1f4; }
+  .review-entry .a { font-size: 13px; color: #556; line-height: 1.5; white-space: pre-line; }
+  body.dark .review-entry .a { color: #a7b0ba; }
+  .review-entry .a.empty { color: #b23b3b; font-style: italic; }
+
+  .feedback-panel { margin-top: 24px; border-top: 1px solid #eee; padding-top: 18px; }
+  body.dark .feedback-panel { border-top-color: #333; }
+  .feedback-panel h2 { font-size: 16px; margin: 0 0 14px; color: #5a3fa8; }
+  body.dark .feedback-panel h2 { color: #b6a4e8; }
+  .feedback-empty { font-size: 13px; color: #999; }
+  .band-overall {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+    background: #f4f0fb; border-radius: 8px; padding: 14px 18px;
+  }
+  body.dark .band-overall { background: #241f36; }
+  .band-overall .num { font-size: 32px; font-weight: 700; color: #5a3fa8; }
+  body.dark .band-overall .num { color: #a58ce8; }
+  .band-overall .label { font-size: 13px; color: #555; }
+  body.dark .band-overall .label { color: #bbb; }
+  .criteria-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  @media (max-width: 600px) { .criteria-grid { grid-template-columns: 1fr; } }
+  .criterion-card { border: 1px solid #e6e9ec; border-radius: 8px; padding: 12px 14px; }
+  body.dark .criterion-card { border-color: #333; background: #20262d; }
+  .criterion-card .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .criterion-card .name { font-size: 13px; font-weight: 600; color: #333; }
+  body.dark .criterion-card .name { color: #ddd; }
+  .criterion-card .score { font-size: 15px; font-weight: 700; color: #5a3fa8; }
+  body.dark .criterion-card .score { color: #b6a4e8; }
+  .criterion-card .comment { font-size: 12.5px; color: #555; line-height: 1.5; }
+  body.dark .criterion-card .comment { color: #b6bcc2; }
+  .overall-comment { font-size: 13.5px; line-height: 1.6; color: #333; background: #f7f8fa; border-radius: 8px; padding: 12px 14px; }
+  body.dark .overall-comment { color: #ddd; background: #20262d; }
+  .ai-error { font-size: 13px; color: #b23b3b; }
+  .ai-note { font-size: 11.5px; color: #999; margin-top: 10px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a class="hub-link" href="index.html">&larr; IELTS Practice Hub</a>
+  <div class="top-row">
+    <div>
+      <h1>IELTS Speaking Practice</h1>
+      <p class="subtitle">Run a full three-part interview with real timing, then get an AI examiner's band estimate.</p>
+    </div>
+    <button class="icon-btn" id="darkToggle">🌙 Dark mode</button>
+  </div>
+
+  <details class="api-settings" id="apiSettings">
+    <summary>AI Feedback settings (free Google Gemini API key)</summary>
+    <p>To get an AI band estimate at the end, add a free Google Gemini API key — no credit card needed. Get one at
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+      Your key is stored only in this browser's local storage and is sent directly from your browser to Google's API — never to us.</p>
+    <div class="row">
+      <input type="password" id="apiKeyInput" placeholder="AIza...">
+      <button class="btn-secondary" id="saveKeyBtn" type="button">Save key</button>
+      <button class="btn-secondary" id="clearKeyBtn" type="button">Remove key</button>
+    </div>
+    <div class="key-status" id="keyStatus"></div>
+  </details>
+
+  <!-- ================= SETUP SCREEN ================= -->
+  <div id="setupScreen">
+    <div class="setup-card">
+      <h2>Before you start</h2>
+      <p class="small">This mirrors the real test: Part 1 (introduction, ~4–5 min), Part 2 (cue card: 1 min prep + up to 2 min speaking), Part 3 (discussion, ~4–5 min). If your browser allows microphone access, you can record and play back each answer. Either way, type or dictate a transcript of what you said — that's what gets scored.</p>
+      <div class="part-overview">
+        <div class="part-chip"><b>Part 1</b><span>Introduction &amp; interview — two everyday topics</span></div>
+        <div class="part-chip"><b>Part 2</b><span>Long turn — one cue card, timed prep + speaking</span></div>
+        <div class="part-chip"><b>Part 3</b><span>Two-way discussion — abstract follow-up questions</span></div>
+      </div>
+      <div class="setup-row" style="gap:18px;">
+        <label style="display:flex; align-items:center; gap:6px;">
+          <input type="radio" name="qSource" value="builtin" id="sourceBuiltin" checked> Built-in question bank
+        </label>
+        <label style="display:flex; align-items:center; gap:6px;">
+          <input type="radio" name="qSource" value="ai" id="sourceAI"> AI-generated (Cambridge-style)
+        </label>
+      </div>
+
+      <div id="builtinOptions">
+        <div class="setup-row">
+          <label>Part 2 topic:
+            <select id="topicSelect">
+              <option value="random">Random (like the real test)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+
+      <div id="aiOptions" style="display:none;">
+        <div class="setup-row" style="flex-direction:column; align-items:stretch;">
+          <label style="margin-bottom:6px;">Topic hint (optional):</label>
+          <input type="text" id="aiTopicHint" placeholder="e.g. environment, technology, education — leave blank for a random Cambridge-style set" style="padding:7px 10px; border-radius:6px; border:1px solid #ccc; font-size:13.5px;">
+        </div>
+        <p class="small" style="margin-top:-4px;">Gemini writes a fresh Part 1/2/3 set modeled on the style, phrasing, and difficulty of Cambridge IELTS Speaking papers. Uses the same API key saved above.</p>
+      </div>
+
+      <button class="btn-primary" id="startBtn">Start Speaking Test</button>
+    </div>
+    <div class="mic-note" id="micSupportNote"></div>
+  </div>
+
+  <!-- ================= INTERVIEW SCREEN ================= -->
+  <div class="interview" id="interviewScreen">
+    <div class="stage-bar">
+      <span class="stage-label" id="stageLabel">Part 1</span>
+      <span class="stage-progress" id="stageProgress">Question 1 of 8</span>
+      <span class="timer-pill" id="timerPill">00:00</span>
+    </div>
+
+    <div class="question-card">
+      <div class="topic-tag" id="topicTag">Topic</div>
+      <div class="qtext" id="questionText">Question text</div>
+    </div>
+
+    <div id="notesArea" style="display:none;">
+      <div class="transcript-note">Jot quick notes here while you prepare (not scored — for your own use, like the paper you'd get in the real test).</div>
+      <textarea class="notes-box" id="prepNotes" placeholder="Key points to mention..."></textarea>
+    </div>
+
+    <div id="answerArea">
+      <div class="mic-row">
+        <button class="rec-btn" id="recBtn" type="button"><span class="dot"></span><span id="recBtnLabel">Record answer</span></button>
+        <audio class="playback" id="playback" controls style="display:none;"></audio>
+        <button class="btn-secondary" id="dictateBtn" type="button" style="display:none;">🎙 Start dictation</button>
+      </div>
+      <div class="mic-note" id="answerMicNote"></div>
+      <textarea class="transcript" id="transcriptBox" placeholder="Type what you said here (or use dictation above) — this is what gets sent for scoring."></textarea>
+      <div class="transcript-note">Tip: include natural fillers ("um", "well", "actually") if you said them — it gives the AI examiner a more realistic sense of your fluency.</div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-secondary" id="skipBtn" type="button">Skip question</button>
+      <button class="btn-primary" id="nextBtn" type="button">Next &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ================= REVIEW SCREEN ================= -->
+  <div class="review" id="reviewScreen">
+    <h2 style="font-size:17px; color:#5a3fa8; margin-bottom:4px;">Your Interview</h2>
+    <p class="subtitle" style="margin-bottom:14px;">Review your answers below, then get an AI band estimate or download a transcript.</p>
+    <div id="reviewList"></div>
+
+    <div class="btn-row" style="margin-top:18px;">
+      <button class="btn-primary" id="feedbackBtn">Get AI Feedback</button>
+      <button class="btn-secondary" id="pdfBtn">Download Transcript (PDF)</button>
+      <button class="btn-danger" id="restartBtn">Start New Test</button>
+    </div>
+
+    <div class="feedback-panel">
+      <h2>AI Examiner Feedback</h2>
+      <div id="feedbackArea">
+        <div class="feedback-empty">Click "Get AI Feedback" above for an estimated band score across all four Speaking criteria.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /* =========================================================
+     Question bank
+  ========================================================= */
+  const PART1_TOPICS = [
+    { topic: 'Hometown', questions: [
+      'Where is your hometown?',
+      'What do you like most about your hometown?',
+      'Has your hometown changed much in recent years?',
+      'Would you like to continue living there in the future?'
+    ]},
+    { topic: 'Work or Study', questions: [
+      'Do you work or are you a student?',
+      'What do you like about your job or your subject?',
+      'What are your future study or career plans?',
+      'Is your job or subject difficult to learn?'
+    ]},
+    { topic: 'Daily Routine', questions: [
+      'Can you describe your typical daily routine?',
+      'Which part of the day do you enjoy the most?',
+      'Has your daily routine changed compared to a few years ago?',
+      'Do you prefer a fixed routine or a flexible schedule?'
+    ]},
+    { topic: 'Hobbies', questions: [
+      'What do you like to do in your free time?',
+      'How did you become interested in this hobby?',
+      'Do you think hobbies are important? Why?',
+      'Would you like to try a new hobby in the future?'
+    ]},
+    { topic: 'Food', questions: [
+      'What kind of food do you like?',
+      'Do you often cook at home?',
+      'Has your diet changed since you were a child?',
+      'Do you think eating habits in your country are generally healthy?'
+    ]},
+    { topic: 'Technology', questions: [
+      'How often do you use your smartphone?',
+      'What app do you use the most, and why?',
+      'Do you think technology has made daily life easier?',
+      'Is there any technology you would like to see in the future?'
+    ]},
+    { topic: 'Weather', questions: [
+      'What is the weather like in your country?',
+      'What is your favourite season? Why?',
+      'Does the weather affect your mood?',
+      'Has the climate changed noticeably in your area recently?'
+    ]},
+    { topic: 'Reading', questions: [
+      'Do you enjoy reading?',
+      'What kind of books or articles do you like?',
+      'Did you read a lot as a child?',
+      'Do you prefer printed books or e-books? Why?'
+    ]}
+  ];
+
+  const PART2_CARDS = [
+    { topic: 'a person you admire', card: 'Describe a person you admire.\nYou should say:\n- who this person is\n- how you know this person\n- what qualities this person has\nand explain why you admire this person.',
+      part3: ['What qualities make someone a good role model?', 'Do you think young people today have fewer role models than in the past?', 'Should teachers be role models for their students?', 'Can people learn good qualities from books or films instead of from real people?'] },
+    { topic: 'a memorable trip', card: 'Describe a memorable trip you have taken.\nYou should say:\n- where you went\n- who you went with\n- what you did there\nand explain why this trip was memorable.',
+      part3: ['Why do people enjoy travelling to new places?', 'How has tourism changed in your country in recent years?', 'What are the disadvantages of mass tourism?', 'Do you think travel broadens a person\'s mind? Why?'] },
+    { topic: 'a skill you would like to learn', card: 'Describe a skill you would like to learn.\nYou should say:\n- what the skill is\n- how you would learn it\n- how long it would take\nand explain why you want to learn this skill.',
+      part3: ['What skills are most useful in today\'s job market?', 'Is it better to learn skills at school or through practical experience?', 'Do you think adults find it harder to learn new skills than children?', 'How might technology change the way people learn skills in the future?'] },
+    { topic: 'a piece of technology you find useful', card: 'Describe a piece of technology you find useful.\nYou should say:\n- what it is\n- how often you use it\n- what you use it for\nand explain why you find it useful.',
+      part3: ['How has technology changed the way people communicate?', 'Do you think people rely too much on technology nowadays?', 'What technology do you think will be common in 20 years?', 'Are there any disadvantages of new technology for older people?'] },
+    { topic: 'a place you would like to visit', card: 'Describe a place you would like to visit in the future.\nYou should say:\n- where it is\n- how you know about this place\n- what you would do there\nand explain why you would like to visit it.',
+      part3: ['Why do some places become popular tourist destinations?', 'Should governments spend money to promote tourism?', 'What effects can tourism have on local communities?', 'How might tourism change over the next few decades?'] },
+    { topic: 'an important decision you made', card: 'Describe an important decision you made.\nYou should say:\n- what the decision was\n- when you made it\n- how you made it\nand explain why it was important.',
+      part3: ['Do you think it is better to make decisions quickly or slowly?', 'How do people\'s decision-making skills change as they get older?', 'Should parents make important decisions for their children?', 'What role does experience play in making good decisions?'] }
+  ];
+
+  const topicSelect = document.getElementById('topicSelect');
+  PART2_CARDS.forEach((c, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = c.topic.charAt(0).toUpperCase() + c.topic.slice(1);
+    topicSelect.appendChild(opt);
+  });
+
+  /* =========================================================
+     Element refs
+  ========================================================= */
+  const darkToggle = document.getElementById('darkToggle');
+  const apiSettings = document.getElementById('apiSettings');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const saveKeyBtn = document.getElementById('saveKeyBtn');
+  const clearKeyBtn = document.getElementById('clearKeyBtn');
+  const keyStatus = document.getElementById('keyStatus');
+
+  const setupScreen = document.getElementById('setupScreen');
+  const startBtn = document.getElementById('startBtn');
+  const micSupportNote = document.getElementById('micSupportNote');
+  const sourceBuiltin = document.getElementById('sourceBuiltin');
+  const sourceAI = document.getElementById('sourceAI');
+  const builtinOptions = document.getElementById('builtinOptions');
+  const aiOptions = document.getElementById('aiOptions');
+  const aiTopicHint = document.getElementById('aiTopicHint');
+
+  const interviewScreen = document.getElementById('interviewScreen');
+  const stageLabel = document.getElementById('stageLabel');
+  const stageProgress = document.getElementById('stageProgress');
+  const timerPill = document.getElementById('timerPill');
+  const topicTag = document.getElementById('topicTag');
+  const questionText = document.getElementById('questionText');
+  const notesArea = document.getElementById('notesArea');
+  const prepNotes = document.getElementById('prepNotes');
+  const answerArea = document.getElementById('answerArea');
+  const recBtn = document.getElementById('recBtn');
+  const recBtnLabel = document.getElementById('recBtnLabel');
+  const playback = document.getElementById('playback');
+  const dictateBtn = document.getElementById('dictateBtn');
+  const answerMicNote = document.getElementById('answerMicNote');
+  const transcriptBox = document.getElementById('transcriptBox');
+  const skipBtn = document.getElementById('skipBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  const reviewScreen = document.getElementById('reviewScreen');
+  const reviewList = document.getElementById('reviewList');
+  const feedbackBtn = document.getElementById('feedbackBtn');
+  const pdfBtn = document.getElementById('pdfBtn');
+  const restartBtn = document.getElementById('restartBtn');
+  const feedbackArea = document.getElementById('feedbackArea');
+
+  const DARK_KEY = 'ielts_dark_v1';
+  const API_KEY_STORAGE = 'ielts_gemini_key_v1';
+
+  /* =========================================================
+     Dark mode
+  ========================================================= */
+  function applyDarkMode(on) {
+    document.body.classList.toggle('dark', on);
+    darkToggle.textContent = on ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+  darkToggle.addEventListener('click', () => {
+    const isDark = !document.body.classList.contains('dark');
+    applyDarkMode(isDark);
+    try { localStorage.setItem(DARK_KEY, isDark ? '1' : '0'); } catch (e) {}
+  });
+  try { if (localStorage.getItem(DARK_KEY) === '1') applyDarkMode(true); } catch (e) {}
+
+  /* =========================================================
+     API key management
+  ========================================================= */
+  function refreshKeyStatus() {
+    const saved = localStorage.getItem(API_KEY_STORAGE);
+    if (saved) {
+      keyStatus.innerHTML = '<span class="key-saved">✓ Gemini API key saved in this browser</span>';
+      apiKeyInput.placeholder = '•••••••• (key saved — enter a new one to replace)';
+    } else {
+      keyStatus.innerHTML = '<span class="key-missing">No API key saved yet</span>';
+      apiKeyInput.placeholder = 'AIza...';
+    }
+  }
+  saveKeyBtn.addEventListener('click', () => {
+    const val = apiKeyInput.value.trim();
+    if (!val) { alert('Paste your API key first.'); return; }
+    try { localStorage.setItem(API_KEY_STORAGE, val); apiKeyInput.value = ''; refreshKeyStatus(); }
+    catch (e) { alert('Could not save key in this browser.'); }
+  });
+  clearKeyBtn.addEventListener('click', () => {
+    localStorage.removeItem(API_KEY_STORAGE);
+    apiKeyInput.value = '';
+    refreshKeyStatus();
+  });
+  refreshKeyStatus();
+
+  /* =========================================================
+     Mic / speech-recognition feature detection
+  ========================================================= */
+  const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const hasSpeechRecognition = !!SpeechRecognitionCtor;
+
+  let micNoteMsg = '';
+  if (!hasGetUserMedia) {
+    micNoteMsg = 'Microphone recording needs a secure context (https:// or localhost) — if you opened this file directly, recording and dictation may be unavailable. You can still type your answers below; the AI feedback works the same either way.';
+  } else if (!hasSpeechRecognition) {
+    micNoteMsg = 'Live dictation isn\'t supported in this browser (it works best in Chrome). You can still record audio for playback, or just type your answers.';
+  }
+  micSupportNote.textContent = micNoteMsg;
+  answerMicNote.textContent = micNoteMsg;
+
+  /* =========================================================
+     Session state
+  ========================================================= */
+  let steps = [];        // ordered list of question steps for this test
+  let responses = [];    // parallel array of { ...step, transcript, audioUrl }
+  let currentStep = 0;
+
+  let mediaStream = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let currentAudioUrl = null;
+  let recognizer = null;
+  let recognizing = false;
+  let finalTranscriptSoFar = '';
+
+  let stageTimerInterval = null;
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function buildSteps(part2Choice) {
+    const chosenPart1 = shuffle(PART1_TOPICS).slice(0, 2);
+    let cardIndex;
+    if (part2Choice === 'random') {
+      cardIndex = Math.floor(Math.random() * PART2_CARDS.length);
+    } else {
+      cardIndex = parseInt(part2Choice, 10);
+    }
+    const card = PART2_CARDS[cardIndex];
+    return assembleSteps(chosenPart1, card);
+  }
+
+  // Shared assembly: turns { part1: [{topic, questions[]}, {topic, questions[]}], part2: {topic, card, part3[]} }
+  // into the flat ordered step list the interview screen walks through.
+  function assembleSteps(part1Topics, part2Card) {
+    const part1Steps = [];
+    part1Topics.forEach(t => {
+      t.questions.forEach(q => part1Steps.push({ type: 'part1', part: 'Part 1', topic: t.topic, question: q }));
+    });
+    const part2Steps = [
+      { type: 'part2_prep', part: 'Part 2', topic: 'Cue card (preparation)', question: part2Card.card, cardTopic: part2Card.topic },
+      { type: 'part2_speak', part: 'Part 2', topic: 'Cue card (your answer)', question: part2Card.card, cardTopic: part2Card.topic }
+    ];
+    const part3Steps = part2Card.part3.map(q => ({ type: 'part3', part: 'Part 3', topic: 'Discussion: ' + part2Card.topic, question: q }));
+    return part1Steps.concat(part2Steps, part3Steps);
+  }
+
+  /* =========================================================
+     AI-generated question set (Cambridge-style)
+  ========================================================= */
+  async function generateAIQuestionSet(hint) {
+    const savedKey = localStorage.getItem(API_KEY_STORAGE);
+    if (!savedKey) {
+      apiSettings.setAttribute('open', 'true');
+      throw new Error('Add a free Gemini API key in the settings panel above first.');
+    }
+
+    const systemInstruction = `You are an experienced IELTS item writer who has closely studied the Cambridge IELTS practice test books (Cambridge IELTS 10-19). Write ONE brand-new IELTS Speaking test in the same style, register, topic range, and difficulty as those books — do not copy an existing Cambridge question verbatim, write an original one modeled on that style.${hint ? ' The candidate requested a general theme of: "' + hint + '" — use it loosely to pick topics, but keep the natural three-part structure.' : ''}
+
+Produce:
+- Part 1: exactly 2 everyday topics, each with a short topic name and exactly 4 short interview questions (simple, personal, present/past tense, Cambridge Part 1 style).
+- Part 2: one cue card with a short topic name and the full card text formatted exactly like Cambridge cards: "Describe a/an ..." then a line "You should say:" then exactly 3 bullet lines starting with "- ", then a closing line starting with "and explain...".
+- Part 3: exactly 4 discussion questions that build on the Part 2 topic with increasing abstraction, in Cambridge Part 3 style (opinion, comparison, speculation about the future/society).
+
+Respond with ONLY valid JSON, no markdown fences, no preamble, matching exactly this shape:
+{
+  "part1": [
+    {"topic": "string", "questions": ["q1","q2","q3","q4"]},
+    {"topic": "string", "questions": ["q1","q2","q3","q4"]}
+  ],
+  "part2": {
+    "topic": "short topic name",
+    "card": "Describe a/an ...\\nYou should say:\\n- point one\\n- point two\\n- point three\\nand explain ...",
+    "part3": ["q1","q2","q3","q4"]
+  }
+}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': savedKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: systemInstruction }] }],
+          generationConfig: { maxOutputTokens: 2000, temperature: 0.9, responseMimeType: 'application/json' }
+        })
+      }
+    );
+    if (!response.ok) {
+      const errBody = await response.text().catch(() => '');
+      throw new Error('API request failed: ' + response.status + (errBody ? ' — ' + errBody.slice(0, 200) : ''));
+    }
+    const data = await response.json();
+    const candidate = data.candidates && data.candidates[0];
+    if (!candidate || !candidate.content || !candidate.content.parts) {
+      throw new Error('No response returned (possibly filtered or cut off)');
+    }
+    const textBlocks = candidate.content.parts.map(p => p.text || '').join('\n');
+    const cleaned = textBlocks.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    if (!parsed.part1 || parsed.part1.length < 2 || !parsed.part2 || !parsed.part2.card || !parsed.part2.part3) {
+      throw new Error('AI response was missing required fields — try again.');
+    }
+    return parsed;
+  }
+
+  /* =========================================================
+     Source toggle (built-in vs AI)
+  ========================================================= */
+  function updateSourceVisibility() {
+    const isAI = sourceAI.checked;
+    builtinOptions.style.display = isAI ? 'none' : 'block';
+    aiOptions.style.display = isAI ? 'block' : 'none';
+  }
+  sourceBuiltin.addEventListener('change', updateSourceVisibility);
+  sourceAI.addEventListener('change', updateSourceVisibility);
+
+  /* =========================================================
+     Start / navigation
+  ========================================================= */
+  startBtn.addEventListener('click', async () => {
+    if (sourceAI.checked) {
+      startBtn.disabled = true;
+      startBtn.textContent = 'Generating questions...';
+      try {
+        const data = await generateAIQuestionSet(aiTopicHint.value.trim());
+        steps = assembleSteps(data.part1.slice(0, 2), data.part2);
+      } catch (err) {
+        alert('Could not generate AI questions: ' + err.message + '\n\nFalling back to the built-in question bank.');
+        steps = buildSteps('random');
+      } finally {
+        startBtn.disabled = false;
+        startBtn.textContent = 'Start Speaking Test';
+      }
+    } else {
+      steps = buildSteps(topicSelect.value);
+    }
+    responses = [];
+    currentStep = 0;
+    setupScreen.style.display = 'none';
+    reviewScreen.classList.remove('active');
+    interviewScreen.classList.add('active');
+    renderStep();
+  });
+
+  function totalCountableSteps() {
+    // for the progress label, collapse the two Part 2 steps into one "question"
+    return steps.filter(s => s.type !== 'part2_prep').length;
+  }
+  function countableIndex(idx) {
+    return steps.slice(0, idx + 1).filter(s => s.type !== 'part2_prep').length;
+  }
+
+  function renderStep() {
+    stopEverything();
+    const step = steps[currentStep];
+    stageLabel.textContent = step.part;
+    stageProgress.textContent = step.type === 'part2_prep'
+      ? 'Preparation'
+      : `Question ${countableIndex(currentStep)} of ${totalCountableSteps()}`;
+    topicTag.textContent = step.topic;
+    questionText.textContent = step.question;
+    questionText.classList.toggle('cue-card', step.type.startsWith('part2'));
+
+    // reset per-step UI
+    playback.style.display = 'none';
+    playback.src = '';
+    transcriptBox.value = '';
+    finalTranscriptSoFar = '';
+    currentAudioUrl = null;
+
+    if (step.type === 'part2_prep') {
+      notesArea.style.display = 'block';
+      answerArea.style.display = 'none';
+      prepNotes.value = '';
+      nextBtn.textContent = 'Start Speaking →';
+      skipBtn.style.display = 'none';
+      startCountdown(60, () => { advance(); });
+    } else {
+      notesArea.style.display = 'none';
+      answerArea.style.display = 'block';
+      skipBtn.style.display = 'inline-block';
+      nextBtn.textContent = 'Next →';
+      if (step.type === 'part2_speak') {
+        startCountdown(120, () => { stopRecording(); stopRecognition(); });
+      } else {
+        startStopwatch();
+      }
+    }
+  }
+
+  function advance() {
+    // save current response before moving on (part2_prep has nothing to save)
+    const step = steps[currentStep];
+    if (step.type !== 'part2_prep') {
+      responses.push(Object.assign({}, step, {
+        transcript: transcriptBox.value.trim(),
+        audioUrl: currentAudioUrl
+      }));
+    }
+    currentStep++;
+    if (currentStep >= steps.length) {
+      finishInterview();
+    } else {
+      renderStep();
+    }
+  }
+
+  nextBtn.addEventListener('click', advance);
+  skipBtn.addEventListener('click', () => {
+    transcriptBox.value = transcriptBox.value.trim() || '(skipped — no answer given)';
+    advance();
+  });
+
+  function finishInterview() {
+    stopEverything();
+    interviewScreen.classList.remove('active');
+    reviewScreen.classList.add('active');
+    renderReview();
+  }
+
+  restartBtn.addEventListener('click', () => {
+    stopEverything();
+    interviewScreen.classList.remove('active');
+    reviewScreen.classList.remove('active');
+    setupScreen.style.display = 'block';
+    feedbackArea.innerHTML = '<div class="feedback-empty">Click "Get AI Feedback" above for an estimated band score across all four Speaking criteria.</div>';
+  });
+
+  /* =========================================================
+     Timers
+  ========================================================= */
+  function formatTime(s) {
+    s = Math.max(0, s);
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  function startCountdown(seconds, onDone) {
+    clearInterval(stageTimerInterval);
+    let remaining = seconds;
+    timerPill.className = 'timer-pill';
+    timerPill.textContent = formatTime(remaining);
+    stageTimerInterval = setInterval(() => {
+      remaining--;
+      timerPill.textContent = formatTime(remaining);
+      timerPill.className = 'timer-pill' + (remaining <= 10 ? ' danger' : remaining <= 30 ? ' warn' : '');
+      if (remaining <= 0) {
+        clearInterval(stageTimerInterval);
+        onDone();
+      }
+    }, 1000);
+  }
+
+  function startStopwatch() {
+    clearInterval(stageTimerInterval);
+    let elapsed = 0;
+    timerPill.className = 'timer-pill';
+    timerPill.textContent = formatTime(elapsed);
+    stageTimerInterval = setInterval(() => {
+      elapsed++;
+      timerPill.textContent = formatTime(elapsed);
+    }, 1000);
+  }
+
+  /* =========================================================
+     Recording (audio playback) + dictation (live transcript)
+  ========================================================= */
+  if (hasGetUserMedia) {
+    recBtn.style.display = 'inline-flex';
+  } else {
+    recBtn.style.display = 'none';
+  }
+  if (hasSpeechRecognition) {
+    dictateBtn.style.display = 'inline-block';
+  }
+
+  recBtn.addEventListener('click', async () => {
+    if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(mediaStream);
+        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(audioChunks, { type: 'audio/webm' });
+          currentAudioUrl = URL.createObjectURL(blob);
+          playback.src = currentAudioUrl;
+          playback.style.display = 'inline-block';
+        };
+        mediaRecorder.start();
+        recBtn.classList.add('recording');
+        recBtnLabel.textContent = 'Stop recording';
+        if (hasSpeechRecognition) startRecognition();
+      } catch (e) {
+        answerMicNote.textContent = 'Could not access the microphone (permission denied or unsupported). You can still type your answer below.';
+      }
+    } else {
+      stopRecording();
+      stopRecognition();
+    }
+  });
+
+  function stopRecording() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(t => t.stop());
+    }
+    recBtn.classList.remove('recording');
+    recBtnLabel.textContent = 'Record answer';
+  }
+
+  function startRecognition() {
+    try {
+      recognizer = new SpeechRecognitionCtor();
+      recognizer.continuous = true;
+      recognizer.interimResults = true;
+      recognizer.lang = 'en-US';
+      finalTranscriptSoFar = transcriptBox.value ? transcriptBox.value + ' ' : '';
+      recognizer.onresult = (event) => {
+        let interim = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          if (res.isFinal) {
+            finalTranscriptSoFar += res[0].transcript + ' ';
+          } else {
+            interim += res[0].transcript;
+          }
+        }
+        transcriptBox.value = (finalTranscriptSoFar + interim).trim();
+      };
+      recognizer.onerror = () => {};
+      recognizer.onend = () => { recognizing = false; };
+      recognizer.start();
+      recognizing = true;
+      dictateBtn.textContent = '🎙 Dictating...';
+    } catch (e) { /* ignore */ }
+  }
+  function stopRecognition() {
+    if (recognizer && recognizing) {
+      try { recognizer.stop(); } catch (e) {}
+    }
+    recognizing = false;
+    dictateBtn.textContent = '🎙 Start dictation';
+  }
+
+  dictateBtn.addEventListener('click', () => {
+    if (!recognizing) startRecognition();
+    else stopRecognition();
+  });
+
+  function stopEverything() {
+    clearInterval(stageTimerInterval);
+    stopRecording();
+    stopRecognition();
+  }
+
+  /* =========================================================
+     Review screen
+  ========================================================= */
+  function renderReview() {
+    reviewList.innerHTML = '';
+    responses.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'review-entry';
+      const answerText = r.transcript && r.transcript.length ? r.transcript : '';
+      div.innerHTML = `
+        <div class="part-tag">${r.part} · ${r.topic}</div>
+        <div class="q">${escapeHtml(r.question)}</div>
+        <div class="a ${answerText ? '' : 'empty'}">${answerText ? escapeHtml(answerText) : 'No answer given.'}</div>
+      `;
+      reviewList.appendChild(div);
+    });
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  /* =========================================================
+     AI feedback (Gemini)
+  ========================================================= */
+  function bandColor(score) {
+    if (score >= 7) return '#2a8a4a';
+    if (score >= 5.5) return '#b8860b';
+    return '#b23b3b';
+  }
+
+  function renderFeedback(data) {
+    const criteria = [
+      { key: 'fluency_coherence', name: 'Fluency & Coherence' },
+      { key: 'lexical_resource', name: 'Lexical Resource' },
+      { key: 'grammar_accuracy', name: 'Grammatical Range & Accuracy' },
+      { key: 'pronunciation', name: 'Pronunciation (estimated)' }
+    ];
+    let html = `<div class="band-overall">
+      <div class="num" style="color:${bandColor(data.overall_band)}">${data.overall_band}</div>
+      <div class="label">Estimated overall band<br>(AI estimate — not an official score)</div>
+    </div>`;
+    html += '<div class="criteria-grid">';
+    criteria.forEach(c => {
+      const item = data[c.key] || {};
+      html += `<div class="criterion-card">
+        <div class="head">
+          <span class="name">${c.name}</span>
+          <span class="score" style="color:${bandColor(item.score || 0)}">${item.score != null ? item.score : '-'}</span>
+        </div>
+        <div class="comment">${item.comment || ''}</div>
+      </div>`;
+    });
+    html += '</div>';
+    if (data.overall_comment) {
+      html += `<div class="overall-comment"><b>Overall feedback:</b><br>${data.overall_comment}</div>`;
+    }
+    html += '<div class="ai-note">AI-generated estimate for practice purposes only — real IELTS examiners may score differently. Pronunciation is estimated from your transcript (hesitations, self-corrections, word choice) since this is text-based analysis; for real pronunciation feedback, listen back to your recordings or ask a teacher.</div>';
+    feedbackArea.innerHTML = html;
+  }
+
+  feedbackBtn.addEventListener('click', async () => {
+    const answered = responses.filter(r => r.transcript && r.transcript.length && !r.transcript.startsWith('(skipped'));
+    if (answered.length === 0) {
+      feedbackArea.innerHTML = '<div class="ai-error">No answers were recorded — there\'s nothing to assess yet.</div>';
+      return;
+    }
+    const savedKey = localStorage.getItem(API_KEY_STORAGE);
+    if (!savedKey) {
+      apiSettings.setAttribute('open', 'true');
+      feedbackArea.innerHTML = '<div class="ai-error">Add a free Google Gemini API key in the "AI Feedback settings" panel above, then try again.</div>';
+      return;
+    }
+
+    feedbackBtn.disabled = true;
+    feedbackBtn.textContent = 'Marking...';
+    feedbackArea.innerHTML = '<div class="feedback-empty">Analyzing your interview against IELTS Speaking band descriptors...</div>';
+
+    const transcriptBlock = responses.map(r =>
+      `[${r.part} — ${r.topic}]\nExaminer: ${r.question}\nCandidate: ${r.transcript && r.transcript.length ? r.transcript : '(no answer given)'}`
+    ).join('\n\n');
+
+    const systemInstruction = `You are an experienced IELTS Speaking examiner. You are given a full transcript of a three-part IELTS Speaking interview (Part 1 introduction, Part 2 long turn, Part 3 discussion). Assess it strictly using the official IELTS Speaking band descriptors (bands 1-9, in 0.5 increments) across: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation. Since you only have a text transcript, estimate Pronunciation cautiously from indirect textual cues (hesitation markers, self-corrections, sentence complexity) and note this limitation in your comment for that criterion. Be honest and realistic, not inflated. Respond with ONLY a valid JSON object, no markdown fences, no preamble, no extra text, matching exactly this shape:
+{
+  "fluency_coherence": {"score": number, "comment": "2-3 sentence feedback"},
+  "lexical_resource": {"score": number, "comment": "2-3 sentence feedback"},
+  "grammar_accuracy": {"score": number, "comment": "2-3 sentence feedback"},
+  "pronunciation": {"score": number, "comment": "2-3 sentence feedback noting this is a text-based estimate"},
+  "overall_band": number,
+  "overall_comment": "3-5 sentence holistic summary with the top 2-3 things to improve"
+}`;
+
+    const fullPrompt = systemInstruction + '\n\nInterview transcript:\n\n' + transcriptBlock;
+
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': savedKey },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+            generationConfig: { maxOutputTokens: 8000, temperature: 0.3, responseMimeType: 'application/json' }
+          })
+        }
+      );
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => '');
+        throw new Error('API request failed: ' + response.status + (errBody ? ' — ' + errBody.slice(0, 200) : ''));
+      }
+      const data = await response.json();
+      const candidate = data.candidates && data.candidates[0];
+      if (!candidate || !candidate.content || !candidate.content.parts) {
+        throw new Error('No response returned (the content may have triggered a safety filter, or the response was cut off)');
+      }
+      const textBlocks = candidate.content.parts.map(p => p.text || '').join('\n');
+      const cleaned = textBlocks.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      renderFeedback(parsed);
+    } catch (err) {
+      feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Double-check your API key in the settings panel above, or you may have hit the free daily quota — try again later or check <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">your Gemini usage</a>.</div>`;
+    } finally {
+      feedbackBtn.disabled = false;
+      feedbackBtn.textContent = 'Get AI Feedback';
+    }
+  });
+
+  /* =========================================================
+     PDF export (multi-page transcript)
+  ========================================================= */
+  pdfBtn.addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const marginLeft = 50, marginRight = 545, marginTop = 55, marginBottom = 45;
+    const maxWidth = marginRight - marginLeft;
+    const pageHeight = doc.internal.pageSize.height;
+    let cursorY = marginTop;
+
+    function ensureSpace(neededHeight) {
+      if (cursorY + neededHeight > pageHeight - marginBottom) {
+        doc.addPage();
+        cursorY = marginTop;
+      }
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.text('IELTS Speaking Practice — Interview Transcript', marginLeft, cursorY);
+    cursorY += 24;
+
+    responses.forEach(r => {
+      ensureSpace(40);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(90, 63, 168);
+      doc.text(`${r.part} — ${r.topic}`, marginLeft, cursorY);
+      doc.setTextColor(0, 0, 0);
+      cursorY += 14;
+
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(10);
+      const qLines = doc.splitTextToSize('Q: ' + r.question, maxWidth);
+      ensureSpace(qLines.length * 12);
+      doc.text(qLines, marginLeft, cursorY);
+      cursorY += qLines.length * 12 + 4;
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      const answerText = r.transcript && r.transcript.length ? r.transcript : '(no answer given)';
+      const aLines = doc.splitTextToSize('A: ' + answerText, maxWidth);
+      // paginate long answers line by line
+      for (let i = 0; i < aLines.length; i++) {
+        ensureSpace(13);
+        doc.text(aLines[i], marginLeft, cursorY);
+        cursorY += 13;
+      }
+      cursorY += 10;
+      doc.setDrawColor(220);
+      doc.setLineWidth(0.5);
+      ensureSpace(6);
+      doc.line(marginLeft, cursorY, marginRight, cursorY);
+      cursorY += 16;
+    });
+
+    doc.save('IELTS_Speaking_Transcript.pdf');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IELTS Writing Practice</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f6f8;
+    margin: 0;
+    padding: 20px;
+    color: #222;
+    transition: background .2s, color .2s;
+  }
+  body.dark { background: #14181c; color: #e4e6e8; }
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    padding: 24px 28px 28px;
+    transition: background .2s, color .2s;
+  }
+  body.dark .container { background: #1e242b; box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+  .top-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  h1 { font-size: 22px; margin: 0 0 4px; color: #17406b; }
+  body.dark h1 { color: #6ea8e0; }
+  body.dark a[href="index.html"] { color: #6ea8e0 !important; }
+  .subtitle { color: #667; font-size: 14px; margin: 0 0 18px; }
+  body.dark .subtitle { color: #9aa4ad; }
+  .icon-btn {
+    background: none; border: 1px solid #ccc; border-radius: 6px;
+    padding: 6px 10px; font-size: 13px; cursor: pointer; color: #333;
+  }
+  body.dark .icon-btn { border-color: #444; color: #e4e6e8; background: #262e36; }
+  .task-select { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .task-select label { font-size: 13px; color: #444; }
+  body.dark .task-select label { color: #ccc; }
+  select, input[type="text"], input[type="number"] {
+    padding: 6px 10px; border-radius: 6px; border: 1px solid #ccc;
+    font-size: 14px; background: #fff; color: #222;
+  }
+  body.dark select, body.dark input[type="text"], body.dark input[type="number"] {
+    background: #262e36; color: #e4e6e8; border-color: #444;
+  }
+  #prompt {
+    width: 100%; margin-bottom: 14px; font-size: 14px; resize: vertical;
+    min-height: 44px; padding: 8px 10px; border-radius: 6px; border: 1px solid #ccc;
+    font-family: inherit; background: #fff; color: #222;
+  }
+  body.dark #prompt { background: #262e36; color: #e4e6e8; border-color: #444; }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  .stats { display: flex; gap: 16px; font-size: 14px; color: #333; flex-wrap: wrap; }
+  body.dark .stats { color: #ccc; }
+  .stats span b { color: #17406b; }
+  body.dark .stats span b { color: #6ea8e0; }
+  .spellcheck-toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .switch { position: relative; display: inline-block; width: 42px; height: 22px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc; transition: .2s; border-radius: 22px;
+  }
+  .slider:before {
+    position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background-color: white; transition: .2s; border-radius: 50%;
+  }
+  input:checked + .slider { background-color: #17406b; }
+  input:checked + .slider:before { transform: translateX(20px); }
+  .progress-wrap { width: 100%; height: 6px; background: #e6e9ec; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+  body.dark .progress-wrap { background: #2a323a; }
+  .progress-bar { height: 100%; width: 0%; background: #b23b3b; transition: width .2s, background .2s; }
+  textarea#essay {
+    width: 100%; min-height: 380px; font-size: 15px; line-height: 1.6; padding: 14px;
+    border-radius: 8px; border: 1px solid #ccc; font-family: inherit; resize: vertical;
+    background: #fff; color: #222;
+  }
+  body.dark textarea#essay { background: #262e36; color: #e4e6e8; border-color: #444; }
+  textarea#essay:focus { outline: none; border-color: #17406b; box-shadow: 0 0 0 2px rgba(23,64,107,0.15); }
+  .bottom-bar { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 10px; }
+  .timer { font-size: 14px; color: #333; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  body.dark .timer { color: #ccc; }
+  button { cursor: pointer; border: none; border-radius: 6px; padding: 10px 18px; font-size: 14px; font-weight: 600; }
+  .btn-primary { background: #17406b; color: #fff; }
+  .btn-primary:hover { background: #123252; }
+  .btn-primary:disabled { background: #93a6ba; cursor: not-allowed; }
+  .btn-secondary { background: #eee; color: #333; }
+  body.dark .btn-secondary { background: #2a323a; color: #e4e6e8; }
+  .btn-secondary:hover { background: #ddd; }
+  body.dark .btn-secondary:hover { background: #333d47; }
+  .btn-ai { background: #5a3fa8; color: #fff; }
+  .btn-ai:hover { background: #472f8a; }
+  .btn-ai:disabled { background: #a99fcf; cursor: not-allowed; }
+  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .under-limit { color: #b23b3b; }
+  .over-limit { color: #2a8a4a; }
+  body.dark .under-limit { color: #e07a7a; }
+  body.dark .over-limit { color: #7fd19a; }
+  .autosave-note { font-size: 12px; color: #999; margin-top: 6px; }
+  .banner {
+    background: #eef6ff; border: 1px solid #cfe3fb; color: #1b4c78; font-size: 13px;
+    padding: 8px 12px; border-radius: 6px; margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  }
+  body.dark .banner { background: #1c2a38; border-color: #2c4460; color: #a9cdf0; }
+  .banner button { background: none; border: none; color: inherit; text-decoration: underline; font-size: 12px; font-weight: 600; padding: 0; }
+
+  .feedback-panel {
+    margin-top: 24px;
+    border-top: 1px solid #eee;
+    padding-top: 18px;
+  }
+  body.dark .feedback-panel { border-top-color: #333; }
+  .feedback-panel h2 { font-size: 16px; margin: 0 0 14px; color: #17406b; }
+  body.dark .feedback-panel h2 { color: #6ea8e0; }
+  .feedback-empty { font-size: 13px; color: #999; }
+  .band-overall {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 16px;
+    background: #f4f0fb; border-radius: 8px; padding: 14px 18px;
+  }
+  body.dark .band-overall { background: #241f36; }
+  .band-overall .num { font-size: 32px; font-weight: 700; color: #5a3fa8; }
+  body.dark .band-overall .num { color: #a58ce8; }
+  .band-overall .label { font-size: 13px; color: #555; }
+  body.dark .band-overall .label { color: #bbb; }
+  .criteria-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px;
+  }
+  @media (max-width: 600px) { .criteria-grid { grid-template-columns: 1fr; } }
+  .criterion-card {
+    border: 1px solid #e6e9ec; border-radius: 8px; padding: 12px 14px;
+  }
+  body.dark .criterion-card { border-color: #333; background: #20262d; }
+  .criterion-card .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .criterion-card .name { font-size: 13px; font-weight: 600; color: #333; }
+  body.dark .criterion-card .name { color: #ddd; }
+  .criterion-card .score { font-size: 15px; font-weight: 700; color: #17406b; }
+  body.dark .criterion-card .score { color: #6ea8e0; }
+  .criterion-card .comment { font-size: 12.5px; color: #555; line-height: 1.5; }
+  body.dark .criterion-card .comment { color: #b6bcc2; }
+  .overall-comment {
+    font-size: 13.5px; line-height: 1.6; color: #333; background: #f7f8fa;
+    border-radius: 8px; padding: 12px 14px;
+  }
+  body.dark .overall-comment { color: #ddd; background: #20262d; }
+  .ai-error { font-size: 13px; color: #b23b3b; }
+  .ai-note { font-size: 11.5px; color: #999; margin-top: 10px; }
+  .api-settings {
+    background: #f7f8fa; border: 1px solid #e6e9ec; border-radius: 8px;
+    padding: 12px 14px; margin-bottom: 14px; font-size: 13px;
+  }
+  body.dark .api-settings { background: #20262d; border-color: #333; }
+  .api-settings summary { cursor: pointer; font-weight: 600; color: #17406b; }
+  body.dark .api-settings summary { color: #6ea8e0; }
+  .api-settings .row { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; }
+  .api-settings input[type="password"], .api-settings input[type="text"] { flex: 1; min-width: 220px; }
+  .api-settings p { margin: 8px 0 0; color: #667; font-size: 12px; line-height: 1.5; }
+  body.dark .api-settings p { color: #9aa4ad; }
+  .api-settings a { color: #5a3fa8; }
+  .key-status { font-size: 12px; margin-top: 6px; }
+  .key-saved { color: #2a8a4a; }
+  .key-missing { color: #999; }
+
+  .chart-upload-wrap {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: -2px 0 14px;
+    padding: 10px 12px;
+    border: 1px dashed #c7cfd7;
+    border-radius: 8px;
+    background: #fafbfc;
+  }
+  body.dark .chart-upload-wrap { background: #1a2027; border-color: #3a444e; }
+  .chart-upload-wrap.active { display: flex; }
+  .chart-upload-label { font-size: 13px; color: #444; display: flex; flex-direction: column; gap: 2px; }
+  body.dark .chart-upload-label { color: #ccc; }
+  .chart-upload-label small { color: #888; font-weight: 400; }
+  body.dark .chart-upload-label small { color: #7d8790; }
+  .chart-preview-wrap { display: none; align-items: center; gap: 10px; }
+  .chart-preview-wrap.shown { display: flex; }
+  .chart-preview-wrap img {
+    max-height: 70px; max-width: 140px; border-radius: 4px; border: 1px solid #ddd; object-fit: contain; background: #fff;
+  }
+  body.dark .chart-preview-wrap img { border-color: #444; }
+  .chart-remove-btn {
+    background: #eee; color: #b23b3b; padding: 4px 9px; font-size: 12px; border-radius: 5px;
+  }
+  body.dark .chart-remove-btn { background: #2a323a; }
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" style="display:inline-block; font-size:12.5px; color:#17406b; text-decoration:none; margin-bottom:10px;">&larr; IELTS Practice Hub</a>
+  <div class="top-row">
+    <div>
+      <h1>IELTS Writing Practice</h1>
+      <p class="subtitle">Write your essay, track your word count, and get AI-marked feedback before exporting.</p>
+    </div>
+    <button class="icon-btn" id="darkToggle">🌙 Dark mode</button>
+  </div>
+
+  <details class="api-settings" id="apiSettings">
+    <summary>AI Feedback settings (free Google Gemini API key)</summary>
+    <p>To use "Get AI Feedback", add a free Google Gemini API key — no credit card needed. Get one at
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
+      Your key is stored only in this browser's local storage and is sent directly from your browser to Google's API — never to us.
+      The free tier gives you a generous daily quota of essay checks at no cost.</p>
+    <div class="row">
+      <input type="password" id="apiKeyInput" placeholder="AIza...">
+      <button class="btn-secondary" id="saveKeyBtn" type="button">Save key</button>
+      <button class="btn-secondary" id="clearKeyBtn" type="button">Remove key</button>
+    </div>
+    <div class="key-status" id="keyStatus"></div>
+  </details>
+
+  <div class="banner" id="restoreBanner" style="display:none;">
+    <span>A previous draft was found and restored.</span>
+    <button id="dismissBanner">Dismiss</button>
+  </div>
+
+  <div class="task-select">
+    <label>Test No.:
+      <input type="number" id="testNo" min="1" placeholder="e.g. 3" style="width:70px;">
+    </label>
+    <label>Cambridge book:
+      <input type="number" id="camBook" min="1" max="20" placeholder="e.g. 17" style="width:80px;">
+    </label>
+    <label>Task number:
+      <select id="taskNumber">
+        <option value="1">Task 1</option>
+        <option value="2" selected>Task 2</option>
+      </select>
+    </label>
+    <label>Word target:
+      <select id="taskType">
+        <option value="150">150 words (Task 1)</option>
+        <option value="250" selected>250 words (Task 2)</option>
+        <option value="custom">Custom</option>
+      </select>
+    </label>
+  </div>
+
+  <textarea id="prompt" placeholder="Paste or type your essay question / prompt here (required for AI marking)..."></textarea>
+
+  <div class="chart-upload-wrap" id="chartUploadWrap">
+    <label class="chart-upload-label">
+      Task 1 chart / diagram (optional)
+      <small>Uploaded here, it will be printed on the PDF next to the prompt.</small>
+    </label>
+    <input type="file" id="chartUpload" accept="image/*">
+    <div class="chart-preview-wrap" id="chartPreviewWrap">
+      <img id="chartPreviewImg" alt="Chart preview">
+      <button type="button" class="chart-remove-btn" id="removeChartBtn">Remove</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="stats">
+      <span>Words: <b id="wordCount">0</b></span>
+      <span>Characters: <b id="charCount">0</b></span>
+      <span>WPM: <b id="wpmCount">0</b></span>
+      <span id="limitNote"></span>
+    </div>
+    <div class="spellcheck-toggle">
+      <span>Spell check</span>
+      <label class="switch">
+        <input type="checkbox" id="spellToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+
+  <textarea id="essay" placeholder="Start writing your essay here..." spellcheck="false"></textarea>
+  <div class="autosave-note" id="autosaveNote"></div>
+
+  <div class="bottom-bar">
+    <div class="timer">
+      <label style="font-size:12px;">
+        <input type="checkbox" id="countdownToggle"> Exam countdown mode
+      </label>
+      <b id="timerDisplay">00:00</b>
+      <button class="btn-secondary" id="timerBtn" style="padding:4px 10px; font-size:12px;">Start</button>
+      <button class="btn-secondary" id="timerResetBtn" style="padding:4px 10px; font-size:12px;">Reset</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="clearBtn">Clear</button>
+      <button class="btn-secondary" id="txtBtn">Save as .txt</button>
+      <button class="btn-ai" id="markBtn">Get AI Feedback</button>
+      <button class="btn-primary" id="pdfBtn">Download as PDF</button>
+    </div>
+  </div>
+
+  <div class="feedback-panel">
+    <h2>AI Band Feedback</h2>
+    <div id="feedbackArea">
+      <div class="feedback-empty">Write your essay, then click "Get AI Feedback" for an estimated band score across all four IELTS criteria.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const essay = document.getElementById('essay');
+  const wordCountEl = document.getElementById('wordCount');
+  const charCountEl = document.getElementById('charCount');
+  const wpmCountEl = document.getElementById('wpmCount');
+  const limitNote = document.getElementById('limitNote');
+  const taskType = document.getElementById('taskType');
+  const camBook = document.getElementById('camBook');
+  const testNo = document.getElementById('testNo');
+  const taskNumber = document.getElementById('taskNumber');
+  const spellToggle = document.getElementById('spellToggle');
+  const promptBox = document.getElementById('prompt');
+  const clearBtn = document.getElementById('clearBtn');
+  const pdfBtn = document.getElementById('pdfBtn');
+  const txtBtn = document.getElementById('txtBtn');
+  const markBtn = document.getElementById('markBtn');
+  const timerBtn = document.getElementById('timerBtn');
+  const timerResetBtn = document.getElementById('timerResetBtn');
+  const timerDisplay = document.getElementById('timerDisplay');
+  const countdownToggle = document.getElementById('countdownToggle');
+  const progressBar = document.getElementById('progressBar');
+  const darkToggle = document.getElementById('darkToggle');
+  const autosaveNote = document.getElementById('autosaveNote');
+  const restoreBanner = document.getElementById('restoreBanner');
+  const dismissBanner = document.getElementById('dismissBanner');
+  const feedbackArea = document.getElementById('feedbackArea');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const saveKeyBtn = document.getElementById('saveKeyBtn');
+  const clearKeyBtn = document.getElementById('clearKeyBtn');
+  const keyStatus = document.getElementById('keyStatus');
+  const apiSettings = document.getElementById('apiSettings');
+  const chartUploadWrap = document.getElementById('chartUploadWrap');
+  const chartUpload = document.getElementById('chartUpload');
+  const chartPreviewWrap = document.getElementById('chartPreviewWrap');
+  const chartPreviewImg = document.getElementById('chartPreviewImg');
+  const removeChartBtn = document.getElementById('removeChartBtn');
+
+  const STORAGE_KEY = 'ielts_draft_v1';
+  const DARK_KEY = 'ielts_dark_v1';
+  const API_KEY_STORAGE = 'ielts_gemini_key_v1';
+
+  let writingStartTime = null;
+  let chartImageDataUrl = null;
+  let chartImageDims = null; // { w, h } in px, used to keep aspect ratio in the PDF
+
+  function getMinWords() {
+    if (taskType.value === '150') return 150;
+    if (taskType.value === '250') return 250;
+    return 0;
+  }
+
+  function updateCounts() {
+    const text = essay.value.trim();
+    const words = text.length === 0 ? 0 : text.split(/\s+/).length;
+    wordCountEl.textContent = words;
+    charCountEl.textContent = essay.value.length;
+
+    const min = getMinWords();
+    if (min > 0) {
+      const pct = Math.min(100, (words / min) * 100);
+      progressBar.style.width = pct + '%';
+      progressBar.style.background = words >= min ? '#2a8a4a' : '#b23b3b';
+      if (words < min) {
+        limitNote.innerHTML = `<span class="under-limit">${min - words} words below minimum (${min})</span>`;
+      } else {
+        limitNote.innerHTML = `<span class="over-limit">Minimum of ${min} words reached</span>`;
+      }
+    } else {
+      progressBar.style.width = '0%';
+      limitNote.textContent = '';
+    }
+
+    if (words > 0 && writingStartTime) {
+      const minutesElapsed = (Date.now() - writingStartTime) / 60000;
+      const wpm = minutesElapsed > 0.05 ? Math.round(words / minutesElapsed) : 0;
+      wpmCountEl.textContent = wpm;
+    } else {
+      wpmCountEl.textContent = '0';
+    }
+  }
+
+  essay.addEventListener('input', () => {
+    if (!writingStartTime && essay.value.trim().length > 0) {
+      writingStartTime = Date.now();
+    }
+    updateCounts();
+    autosaveDraft();
+  });
+  taskType.addEventListener('change', updateCounts);
+
+  taskNumber.addEventListener('change', () => {
+    if (taskNumber.value === '1') taskType.value = '150';
+    else taskType.value = '250';
+    updateCounts();
+    setDefaultCountdown();
+    updateChartVisibility();
+    autosaveDraft();
+  });
+
+  spellToggle.addEventListener('change', () => {
+    essay.setAttribute('spellcheck', spellToggle.checked ? 'true' : 'false');
+    const val = essay.value;
+    essay.value = '';
+    essay.value = val;
+  });
+
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Clear the essay text? This cannot be undone.')) {
+      essay.value = '';
+      writingStartTime = null;
+      updateCounts();
+      autosaveDraft();
+    }
+  });
+
+  // ---------- Dark mode ----------
+  function applyDarkMode(on) {
+    document.body.classList.toggle('dark', on);
+    darkToggle.textContent = on ? '☀️ Light mode' : '🌙 Dark mode';
+  }
+  darkToggle.addEventListener('click', () => {
+    const isDark = !document.body.classList.contains('dark');
+    applyDarkMode(isDark);
+    try { localStorage.setItem(DARK_KEY, isDark ? '1' : '0'); } catch (e) {}
+  });
+
+  // ---------- Task 1 chart/diagram upload ----------
+  function updateChartVisibility() {
+    chartUploadWrap.classList.toggle('active', taskNumber.value === '1');
+  }
+
+  function showChartPreview() {
+    if (chartImageDataUrl) {
+      chartPreviewImg.src = chartImageDataUrl;
+      chartPreviewWrap.classList.add('shown');
+    } else {
+      chartPreviewWrap.classList.remove('shown');
+    }
+  }
+
+  function loadImageFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Downscale large images so the draft stays a reasonable size and the PDF stays sharp but light.
+        const maxDim = 1100;
+        let w = img.width, h = img.height;
+        if (w > maxDim || h > maxDim) {
+          const scale = Math.min(maxDim / w, maxDim / h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        callback(dataUrl, { w, h });
+      };
+      img.onerror = () => alert('Could not read that image file.');
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  chartUpload.addEventListener('change', () => {
+    const file = chartUpload.files && chartUpload.files[0];
+    if (!file) return;
+    loadImageFile(file, (dataUrl, dims) => {
+      chartImageDataUrl = dataUrl;
+      chartImageDims = dims;
+      showChartPreview();
+      autosaveDraft();
+    });
+  });
+
+  removeChartBtn.addEventListener('click', () => {
+    chartImageDataUrl = null;
+    chartImageDims = null;
+    chartUpload.value = '';
+    showChartPreview();
+    autosaveDraft();
+  });
+
+  // ---------- Autosave / restore ----------
+  function autosaveDraft() {
+    try {
+      const draft = {
+        essay: essay.value,
+        prompt: promptBox.value,
+        camBook: camBook.value,
+        testNo: testNo.value,
+        taskNumber: taskNumber.value,
+        taskType: taskType.value,
+        chartImage: chartImageDataUrl,
+        chartImageDims: chartImageDims,
+        savedAt: Date.now()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+      autosaveNote.textContent = 'Draft autosaved at ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      autosaveNote.textContent = '';
+    }
+  }
+  promptBox.addEventListener('input', autosaveDraft);
+  camBook.addEventListener('input', autosaveDraft);
+  testNo.addEventListener('input', autosaveDraft);
+  taskNumber.addEventListener('change', autosaveDraft);
+  taskType.addEventListener('change', autosaveDraft);
+
+  function restoreDraft() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.essay && draft.essay.trim().length > 0) {
+        essay.value = draft.essay;
+        promptBox.value = draft.prompt || '';
+        camBook.value = draft.camBook || '';
+        testNo.value = draft.testNo || '';
+        if (draft.taskNumber) taskNumber.value = draft.taskNumber;
+        if (draft.taskType) taskType.value = draft.taskType;
+        if (draft.chartImage) {
+          chartImageDataUrl = draft.chartImage;
+          chartImageDims = draft.chartImageDims || null;
+          showChartPreview();
+        }
+        restoreBanner.style.display = 'flex';
+        writingStartTime = Date.now();
+      }
+    } catch (e) {}
+  }
+  dismissBanner.addEventListener('click', () => {
+    restoreBanner.style.display = 'none';
+  });
+
+  // ---------- Timer ----------
+  let timerInterval = null;
+  let secondsElapsed = 0;
+  let countdownSeconds = 40 * 60;
+  let timerRunning = false;
+
+  function setDefaultCountdown() {
+    countdownSeconds = taskNumber.value === '1' ? 20 * 60 : 40 * 60;
+    if (countdownToggle.checked && !timerRunning) {
+      timerDisplay.textContent = formatTime(countdownSeconds);
+    }
+  }
+
+  function formatTime(s) {
+    s = Math.max(0, s);
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  countdownToggle.addEventListener('change', () => {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerBtn.textContent = 'Start';
+    secondsElapsed = 0;
+    setDefaultCountdown();
+    timerDisplay.textContent = countdownToggle.checked ? formatTime(countdownSeconds) : formatTime(0);
+  });
+
+  timerBtn.addEventListener('click', () => {
+    if (!timerRunning) {
+      timerInterval = setInterval(() => {
+        if (countdownToggle.checked) {
+          countdownSeconds--;
+          timerDisplay.textContent = formatTime(countdownSeconds);
+          if (countdownSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerBtn.textContent = 'Start';
+            alert("Time's up! Wrap up your essay.");
+          }
+        } else {
+          secondsElapsed++;
+          timerDisplay.textContent = formatTime(secondsElapsed);
+        }
+      }, 1000);
+      timerRunning = true;
+      timerBtn.textContent = 'Pause';
+    } else {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerBtn.textContent = 'Resume';
+    }
+  });
+
+  timerResetBtn.addEventListener('click', () => {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerBtn.textContent = 'Start';
+    secondsElapsed = 0;
+    setDefaultCountdown();
+    timerDisplay.textContent = countdownToggle.checked ? formatTime(countdownSeconds) : formatTime(0);
+  });
+
+  // ---------- Save as .txt ----------
+  txtBtn.addEventListener('click', () => {
+    const bookNum = camBook.value.trim();
+    const taskNum = taskNumber.value.trim();
+    const filename = bookNum ? `Cam_${bookNum}_Task_${taskNum}.txt` : `IELTS_Task_${taskNum}.txt`;
+    const content = (promptBox.value.trim() ? 'Prompt:\n' + promptBox.value.trim() + '\n\n' : '') +
+      `Word count: ${wordCountEl.textContent}\n\n` + essay.value;
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  // ---------- API key management ----------
+  function refreshKeyStatus() {
+    const saved = localStorage.getItem(API_KEY_STORAGE);
+    if (saved) {
+      keyStatus.innerHTML = '<span class="key-saved">✓ Gemini API key saved in this browser</span>';
+      apiKeyInput.placeholder = '•••••••• (key saved — enter a new one to replace)';
+    } else {
+      keyStatus.innerHTML = '<span class="key-missing">No API key saved yet</span>';
+      apiKeyInput.placeholder = 'AIza...';
+    }
+  }
+
+  saveKeyBtn.addEventListener('click', () => {
+    const val = apiKeyInput.value.trim();
+    if (!val) {
+      alert('Paste your API key first.');
+      return;
+    }
+    try {
+      localStorage.setItem(API_KEY_STORAGE, val);
+      apiKeyInput.value = '';
+      refreshKeyStatus();
+    } catch (e) {
+      alert('Could not save key in this browser.');
+    }
+  });
+
+  clearKeyBtn.addEventListener('click', () => {
+    localStorage.removeItem(API_KEY_STORAGE);
+    apiKeyInput.value = '';
+    refreshKeyStatus();
+  });
+
+  refreshKeyStatus();
+
+  // ---------- AI marking ----------
+  function bandColor(score) {
+    if (score >= 7) return '#2a8a4a';
+    if (score >= 5.5) return '#b8860b';
+    return '#b23b3b';
+  }
+
+  function renderFeedback(data) {
+    const criteria = [
+      { key: 'task_achievement', name: taskNumber.value === '1' ? 'Task Achievement' : 'Task Response' },
+      { key: 'coherence_cohesion', name: 'Coherence & Cohesion' },
+      { key: 'lexical_resource', name: 'Lexical Resource' },
+      { key: 'grammar_accuracy', name: 'Grammatical Range & Accuracy' }
+    ];
+
+    let html = `<div class="band-overall">
+      <div class="num" style="color:${bandColor(data.overall_band)}">${data.overall_band}</div>
+      <div class="label">Estimated overall band<br>(AI estimate — not an official score)</div>
+    </div>`;
+
+    html += '<div class="criteria-grid">';
+    criteria.forEach(c => {
+      const item = data[c.key] || {};
+      html += `<div class="criterion-card">
+        <div class="head">
+          <span class="name">${c.name}</span>
+          <span class="score" style="color:${bandColor(item.score || 0)}">${item.score != null ? item.score : '-'}</span>
+        </div>
+        <div class="comment">${item.comment || ''}</div>
+      </div>`;
+    });
+    html += '</div>';
+
+    if (data.overall_comment) {
+      html += `<div class="overall-comment"><b>Overall feedback:</b><br>${data.overall_comment}</div>`;
+    }
+    html += '<div class="ai-note">AI-generated estimate for practice purposes only — real IELTS markers may score differently.</div>';
+
+    feedbackArea.innerHTML = html;
+  }
+
+  markBtn.addEventListener('click', async () => {
+    const essayText = essay.value.trim();
+    if (essayText.length === 0) {
+      feedbackArea.innerHTML = '<div class="ai-error">Write your essay before requesting feedback.</div>';
+      return;
+    }
+    const promptTextCheck = promptBox.value.trim();
+    if (promptTextCheck.length === 0) {
+      feedbackArea.innerHTML = '<div class="ai-error">Paste the essay question/prompt in the box above before requesting feedback — it\'s required for accurate Task Response marking.</div>';
+      promptBox.focus();
+      return;
+    }
+    const min = getMinWords();
+    const wordCount = wordCountEl.textContent;
+
+    markBtn.disabled = true;
+    markBtn.textContent = 'Marking...';
+    feedbackArea.innerHTML = '<div class="feedback-empty">Analyzing your essay against IELTS band descriptors...</div>';
+
+    const taskNum = taskNumber.value;
+    const promptText = promptTextCheck;
+
+    const systemInstruction = `You are an experienced IELTS Writing examiner. Assess the given IELTS Writing Task ${taskNum} response strictly using the official IELTS band descriptors (bands 1-9, in 0.5 increments) across these four criteria: Task ${taskNum === '1' ? 'Achievement' : 'Response'}, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Be honest and realistic, not inflated. Respond with ONLY a valid JSON object, no markdown fences, no preamble, no extra text, matching exactly this shape:
+{
+  "task_achievement": {"score": number, "comment": "2-3 sentence feedback"},
+  "coherence_cohesion": {"score": number, "comment": "2-3 sentence feedback"},
+  "lexical_resource": {"score": number, "comment": "2-3 sentence feedback"},
+  "grammar_accuracy": {"score": number, "comment": "2-3 sentence feedback"},
+  "overall_band": number,
+  "overall_comment": "3-5 sentence holistic summary with the top 2-3 things to improve"
+}`;
+
+    const userMessage = `Essay prompt: ${promptText}\n\nWord count target: ${min > 0 ? min : 'N/A'} minimum\nActual word count: ${wordCount}\n\nEssay:\n${essayText}`;
+
+    try {
+      const savedKey = localStorage.getItem(API_KEY_STORAGE);
+      if (!savedKey) {
+        apiSettings.setAttribute('open', 'true');
+        feedbackArea.innerHTML = '<div class="ai-error">Add a free Google Gemini API key in the "AI Feedback settings" panel above, then try again.</div>';
+        markBtn.disabled = false;
+        markBtn.textContent = 'Get AI Feedback';
+        return;
+      }
+
+      const fullPrompt = systemInstruction + '\n\n' + userMessage;
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": savedKey
+          },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
+            generationConfig: { maxOutputTokens: 8000, temperature: 0.3, responseMimeType: "application/json" }
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => '');
+        throw new Error('API request failed: ' + response.status + (errBody ? ' — ' + errBody.slice(0, 200) : ''));
+      }
+      const data = await response.json();
+      const candidate = data.candidates && data.candidates[0];
+      if (!candidate || !candidate.content || !candidate.content.parts) {
+        throw new Error('No response returned (the essay may have triggered a safety filter, or the response was cut off)');
+      }
+      const textBlocks = candidate.content.parts.map(p => p.text || '').join('\n');
+      const cleaned = textBlocks.replace(/```json|```/g, '').trim();
+      const parsed = JSON.parse(cleaned);
+      renderFeedback(parsed);
+    } catch (err) {
+      const savedKey = localStorage.getItem(API_KEY_STORAGE);
+      if (!savedKey) {
+        apiSettings.setAttribute('open', 'true');
+        feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Add your free Gemini API key in the "AI Feedback settings" panel above, then try again.</div>`;
+      } else {
+        feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Double-check your API key in the settings panel above, or you may have hit the free daily quota — try again later or check <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">your Gemini usage</a>.</div>`;
+      }
+    } finally {
+      markBtn.disabled = false;
+      markBtn.textContent = 'Get AI Feedback';
+    }
+  });
+
+  // ---------- PDF export (single page, examiner strip reserved at bottom) ----------
+  pdfBtn.addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+    const marginLeft = 50;
+    const marginRight = 545;
+    const marginTop = 55;
+    const marginBottom = 35;
+    const maxWidth = marginRight - marginLeft;
+    const pageHeight = doc.internal.pageSize.height;
+
+    const bookNumHeader = camBook.value.trim();
+    const testNoHeader = testNo.value.trim();
+    const taskNumHeader = taskNumber.value.trim();
+    let titleText = bookNumHeader
+      ? `Cambridge ${bookNumHeader} — Task ${taskNumHeader}`
+      : `IELTS Writing Practice — Task ${taskNumHeader}`;
+    if (testNoHeader) titleText += `  |  Test No. ${testNoHeader}`;
+
+    let cursorY = marginTop;
+
+    // ---- Header ----
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.text(titleText, marginLeft, cursorY);
+    cursorY += 18;
+
+    const promptText = promptBox.value.trim();
+    let promptLines = [];
+    if (promptText) {
+      doc.setFontSize(9.5);
+      promptLines = doc.splitTextToSize('Prompt: ' + promptText, maxWidth);
+    }
+    if (promptLines.length) {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(9.5);
+      doc.text(promptLines, marginLeft, cursorY);
+      cursorY += promptLines.length * 11 + 8;
+    }
+
+    // ---- Task 1 chart/diagram, printed right under the prompt ----
+    const hasChart = taskNumHeader === '1' && chartImageDataUrl && chartImageDims;
+    if (hasChart) {
+      const maxImgWidth = maxWidth;
+      const maxImgHeight = 160;
+      const ratio = chartImageDims.w / chartImageDims.h;
+      let dispW = maxImgWidth;
+      let dispH = dispW / ratio;
+      if (dispH > maxImgHeight) {
+        dispH = maxImgHeight;
+        dispW = dispH * ratio;
+      }
+      const imgX = marginLeft + (maxWidth - dispW) / 2;
+      doc.addImage(chartImageDataUrl, 'JPEG', imgX, cursorY, dispW, dispH);
+      cursorY += dispH + 12;
+    }
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text(`Word count: ${wordCountEl.textContent}`, marginLeft, cursorY);
+    cursorY += 14;
+
+    const essayStartY = cursorY;
+
+    // ---- Reserved bottom examiner strip (compact, fixed height) ----
+    const examinerHeight = 130;
+    const examinerTop = pageHeight - marginBottom - examinerHeight;
+    const availableForEssay = examinerTop - essayStartY - 10;
+
+    // ---- Auto-shrink essay font to guarantee everything fits on one page ----
+    const rawEssay = essay.value || '(No text written)';
+    const candidates = [
+      { size: 11.5, lh: 15 }, { size: 11, lh: 14.5 }, { size: 10.5, lh: 14 },
+      { size: 10, lh: 13 }, { size: 9.5, lh: 12.3 }, { size: 9, lh: 11.7 },
+      { size: 8.5, lh: 11 }, { size: 8, lh: 10.4 }, { size: 7.5, lh: 9.8 },
+      { size: 7, lh: 9.2 }
+    ];
+    let chosen = candidates[candidates.length - 1];
+    let chosenLines = [];
+    for (const c of candidates) {
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(c.size);
+      const lines = doc.splitTextToSize(rawEssay, maxWidth);
+      if (lines.length * c.lh <= availableForEssay) {
+        chosen = c;
+        chosenLines = lines;
+        break;
+      }
+      chosenLines = lines; // fallback: smallest size tried so far
+    }
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(chosen.size);
+    let ey = essayStartY;
+    for (let i = 0; i < chosenLines.length; i++) {
+      doc.text(chosenLines[i], marginLeft, ey);
+      ey += chosen.lh;
+    }
+
+    // ---- Examiner section (compact, anchored to bottom of the same page) ----
+    let exY = examinerTop;
+    doc.setDrawColor(120);
+    doc.setLineWidth(1);
+    doc.line(marginLeft, exY, marginRight, exY);
+    exY += 13;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.text('FOR EXAMINER USE ONLY', marginLeft, exY);
+    exY += 14;
+
+    const criteriaLabels = [
+      taskNumHeader === '1' ? 'Task Achievement' : 'Task Response',
+      'Coherence & Cohesion',
+      'Lexical Resource',
+      'Grammar Range & Accuracy',
+      'Overall Band'
+    ];
+    const boxCount = criteriaLabels.length;
+    const gap = 8;
+    const boxWidth = (maxWidth - gap * (boxCount - 1)) / boxCount;
+    const boxHeight = 24;
+
+    criteriaLabels.forEach((label, i) => {
+      const bx = marginLeft + i * (boxWidth + gap);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.3);
+      const labelLines = doc.splitTextToSize(label, boxWidth);
+      doc.text(labelLines, bx, exY);
+      doc.setDrawColor(120);
+      doc.setLineWidth(i === boxCount - 1 ? 1.2 : 0.8);
+      doc.rect(bx, exY + 14, boxWidth, boxHeight);
+    });
+    exY += 14 + boxHeight + 14;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text("Examiner's Comments:", marginLeft, exY);
+    exY += 10;
+    doc.setDrawColor(190);
+    doc.setLineWidth(0.6);
+    for (let i = 0; i < 2; i++) {
+      exY += 13;
+      doc.line(marginLeft, exY, marginRight, exY);
+    }
+    exY += 22;
+
+    doc.setDrawColor(120);
+    doc.setLineWidth(0.8);
+    doc.line(marginLeft, exY, marginLeft + 160, exY);
+    doc.line(marginLeft + 210, exY, marginLeft + 340, exY);
+    doc.line(marginLeft + 370, exY, marginRight, exY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.text('Examiner Name', marginLeft, exY + 10);
+    doc.text('Signature', marginLeft + 210, exY + 10);
+    doc.text('Date', marginLeft + 370, exY + 10);
+
+    const bookNum = camBook.value.trim();
+    const taskNum = taskNumber.value.trim();
+    const testNumVal = testNo.value.trim();
+    let filename = bookNum ? `Cam_${bookNum}_Task_${taskNum}` : `IELTS_Task_${taskNum}`;
+    if (testNumVal) filename += `_Test_${testNumVal}`;
+    filename += '.pdf';
+    doc.save(filename);
+  });
+
+  // ---------- Init ----------
+  try {
+    if (localStorage.getItem(DARK_KEY) === '1') applyDarkMode(true);
+  } catch (e) {}
+  restoreDraft();
+  setDefaultCountdown();
+  updateChartVisibility();
+  updateCounts();
+</script>
+</body>
+</html>
