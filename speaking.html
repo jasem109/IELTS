@@ -221,7 +221,7 @@
   <div id="setupScreen">
     <div class="setup-card">
       <h2>Before you start</h2>
-      <p class="small">This mirrors the real test: Part 1 (introduction, ~4–5 min), Part 2 (cue card: 1 min prep + up to 2 min speaking), Part 3 (discussion, ~4–5 min). If your browser allows microphone access, you can record and play back each answer. Either way, type or dictate a transcript of what you said — that's what gets scored.</p>
+      <p class="small">This mirrors the real test: Part 1 (introduction, ~4–5 min), Part 2 (cue card: 1 min prep + up to 2 min speaking), Part 3 (discussion, ~4–5 min). The built-in bank covers 16 Part 1 topics and 16 Part 2 cue cards, written in the topic range and style of Cambridge IELTS 8–16 practice tests. If your browser allows microphone access, you can record and play back each answer. Either way, type or dictate a transcript of what you said — that's what gets scored.</p>
       <div class="part-overview">
         <div class="part-chip"><b>Part 1</b><span>Introduction &amp; interview — two everyday topics</span></div>
         <div class="part-chip"><b>Part 2</b><span>Long turn — one cue card, timed prep + speaking</span></div>
@@ -368,6 +368,54 @@
       'What kind of books or articles do you like?',
       'Did you read a lot as a child?',
       'Do you prefer printed books or e-books? Why?'
+    ]},
+    { topic: 'Neighbours', questions: [
+      'Do you know your neighbours well?',
+      'How often do you talk to your neighbours?',
+      'Is it common for neighbours to help each other in your country?',
+      'Would you prefer to live somewhere with close neighbours or somewhere more private?'
+    ]},
+    { topic: 'Public Transport', questions: [
+      'What forms of public transport are available where you live?',
+      'Do you often use public transport?',
+      'What do you usually do while travelling on public transport?',
+      'How could public transport be improved in your city?'
+    ]},
+    { topic: 'Shopping', questions: [
+      'Do you enjoy shopping?',
+      'Do you prefer shopping online or in physical stores?',
+      'What kinds of things do you usually buy?',
+      'Has the way people shop changed much in your country?'
+    ]},
+    { topic: 'Movies', questions: [
+      'Do you often watch movies?',
+      'What kind of movies do you like?',
+      'Do you prefer watching movies at home or at the cinema?',
+      'Did you watch a lot of movies as a child?'
+    ]},
+    { topic: 'Music', questions: [
+      'What kind of music do you like?',
+      'Did you learn to play a musical instrument as a child?',
+      'Do you think music is important in daily life?',
+      'Has your taste in music changed over the years?'
+    ]},
+    { topic: 'Sports', questions: [
+      'Do you play any sports?',
+      'What sports are popular in your country?',
+      'Did you use to play sports when you were younger?',
+      'Do you prefer watching sports or playing them?'
+    ]},
+    { topic: 'The Internet', questions: [
+      'How much time do you spend online each day?',
+      'What do you mainly use the internet for?',
+      'Do you think the internet has changed the way people communicate?',
+      'Are there any downsides to spending a lot of time online?'
+    ]},
+    { topic: 'Plants and Gardens', questions: [
+      'Do you like plants or gardening?',
+      'Is there a garden or park near where you live?',
+      'Did you grow any plants as a child?',
+      'Do you think green spaces are important in cities?'
     ]}
   ];
 
@@ -383,7 +431,27 @@
     { topic: 'a place you would like to visit', card: 'Describe a place you would like to visit in the future.\nYou should say:\n- where it is\n- how you know about this place\n- what you would do there\nand explain why you would like to visit it.',
       part3: ['Why do some places become popular tourist destinations?', 'Should governments spend money to promote tourism?', 'What effects can tourism have on local communities?', 'How might tourism change over the next few decades?'] },
     { topic: 'an important decision you made', card: 'Describe an important decision you made.\nYou should say:\n- what the decision was\n- when you made it\n- how you made it\nand explain why it was important.',
-      part3: ['Do you think it is better to make decisions quickly or slowly?', 'How do people\'s decision-making skills change as they get older?', 'Should parents make important decisions for their children?', 'What role does experience play in making good decisions?'] }
+      part3: ['Do you think it is better to make decisions quickly or slowly?', 'How do people\'s decision-making skills change as they get older?', 'Should parents make important decisions for their children?', 'What role does experience play in making good decisions?'] },
+    { topic: 'a book you enjoyed reading', card: 'Describe a book you enjoyed reading.\nYou should say:\n- what the book was about\n- when you read it\n- why you decided to read it\nand explain why you enjoyed it.',
+      part3: ['Why do you think some people prefer fiction to non-fiction?', 'Do you think reading habits have changed because of technology?', 'What are the benefits of reading for children?', 'Do you think books will still be popular in the future?'] },
+    { topic: 'a time you helped someone', card: 'Describe a time you helped someone.\nYou should say:\n- who you helped\n- what the situation was\n- how you helped them\nand explain how you felt about it.',
+      part3: ['Why do you think some people are more willing to help others than others?', 'Should schools teach children to help their community?', 'Is it more common for people to help strangers in cities or in small towns?', 'Do you think people help each other less than they used to?'] },
+    { topic: 'a course you have taken', card: 'Describe a course you have taken.\nYou should say:\n- what the course was\n- where you took it\n- what you learned from it\nand explain why you decided to take it.',
+      part3: ['What are the advantages of taking online courses compared to classroom courses?', 'Do you think adults should continue learning new things throughout their lives?', 'Should companies pay for their employees to take training courses?', 'How might online education change in the future?'] },
+    { topic: 'an interesting older person you know', card: 'Describe an interesting older person you know.\nYou should say:\n- who this person is\n- how you know them\n- what makes them interesting\nand explain what you have learned from them.',
+      part3: ['What can younger and older generations learn from each other?', 'Do you think older people are respected enough in modern society?', 'How has the role of older people in the family changed over time?', 'Should society do more to support elderly people?'] },
+    { topic: 'a public place you like to spend time in', card: 'Describe a public place you like to spend time in.\nYou should say:\n- where it is\n- what it looks like\n- what people do there\nand explain why you like spending time there.',
+      part3: ['Why are public spaces important in a city?', 'How can local governments make public spaces more attractive?', 'Do you think people spend enough time in public spaces nowadays?', 'What is the difference between public spaces in cities and in the countryside?'] },
+    { topic: 'a positive change in your neighbourhood or city', card: 'Describe a positive change that has happened in your neighbourhood or city.\nYou should say:\n- what the change was\n- when it happened\n- what caused it\nand explain why you think it was a positive change.',
+      part3: ['What kinds of changes improve the quality of life in a city?', 'Who should be responsible for planning changes in a city — the government or local residents?', 'Do you think cities in your country are developing too quickly?', 'What problems can rapid development cause?'] },
+    { topic: 'a gift you gave that someone really liked', card: 'Describe a gift you gave to someone that they really liked.\nYou should say:\n- what the gift was\n- who you gave it to\n- why you chose it\nand explain why they liked it so much.',
+      part3: ['Why do people give gifts on special occasions?', 'Do you think gift-giving customs are changing?', 'Is it better to give a practical gift or a sentimental one?', 'Are handmade gifts more meaningful than bought ones?'] },
+    { topic: 'an invention that has changed the way people live', card: 'Describe an invention that has changed the way people live.\nYou should say:\n- what the invention is\n- how it works\n- who uses it\nand explain how it has changed people\'s lives.',
+      part3: ['What inventions do you think have had the biggest impact on society?', 'Do you think all new technology benefits society, or are there downsides?', 'How might inventions change the way people work in the future?', 'Should governments regulate new technologies more closely?'] },
+    { topic: 'a festival or celebration in your country', card: 'Describe a festival or celebration in your country.\nYou should say:\n- what it celebrates\n- how people celebrate it\n- who takes part in it\nand explain why this celebration is important.',
+      part3: ['Why do countries have traditional festivals?', 'Do you think festivals are becoming less important in modern society?', 'How do celebrations differ between generations?', 'Should traditional festivals be preserved, or is it fine if they change over time?'] },
+    { topic: 'a time you were very busy', card: 'Describe a time when you were very busy.\nYou should say:\n- when this was\n- what you had to do\n- why you were so busy\nand explain how you felt during this time.',
+      part3: ['Do you think people today are busier than in the past?', 'How can people manage their time better?', 'Is a busy lifestyle good or bad for a person\'s wellbeing?', 'Do you think technology has made people busier or has it saved them time?'] }
   ];
 
   const topicSelect = document.getElementById('topicSelect');
