@@ -147,6 +147,30 @@
     border-radius: 8px; padding: 12px 14px;
   }
   body.dark .overall-comment { color: #ddd; background: #20262d; }
+  .corrections-section { margin-top: 16px; }
+  .corrections-section h3 { font-size: 14px; margin: 0 0 10px; color: #17406b; }
+  body.dark .corrections-section h3 { color: #6ea8e0; }
+  .correction-item {
+    border: 1px solid #e6e9ec; border-left: 3px solid #b23b3b; border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 10px; font-size: 13px;
+  }
+  body.dark .correction-item { border-color: #333; border-left-color: #d05a5a; background: #20262d; }
+  .correction-item .type-tag {
+    display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .03em; color: #5a3fa8; background: #ece7fa; border-radius: 4px;
+    padding: 2px 7px; margin-bottom: 6px;
+  }
+  body.dark .correction-item .type-tag { color: #c8b8f0; background: #2b2440; }
+  .correction-original {
+    color: #b23b3b; text-decoration: line-through; text-decoration-thickness: 1.5px;
+  }
+  body.dark .correction-original { color: #e07a7a; }
+  .correction-arrow { color: #888; margin: 0 6px; }
+  .correction-suggestion { color: #2a8a4a; font-weight: 600; }
+  body.dark .correction-suggestion { color: #7fd19a; }
+  .correction-explanation { margin-top: 5px; color: #555; line-height: 1.5; }
+  body.dark .correction-explanation { color: #b6bcc2; }
+  .no-corrections { font-size: 13px; color: #999; }
   .ai-error { font-size: 13px; color: #b23b3b; }
   .ai-note { font-size: 11.5px; color: #999; margin-top: 10px; }
   .api-settings {
@@ -668,6 +692,16 @@
     return '#b23b3b';
   }
 
+  function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   function renderFeedback(data) {
     const criteria = [
       { key: 'task_achievement', name: taskNumber.value === '1' ? 'Task Achievement' : 'Task Response' },
@@ -677,7 +711,7 @@
     ];
 
     let html = `<div class="band-overall">
-      <div class="num" style="color:${bandColor(data.overall_band)}">${data.overall_band}</div>
+      <div class="num" style="color:${bandColor(data.overall_band)}">${escapeHtml(data.overall_band)}</div>
       <div class="label">Estimated overall band<br>(AI estimate — not an official score)</div>
     </div>`;
 
@@ -687,16 +721,31 @@
       html += `<div class="criterion-card">
         <div class="head">
           <span class="name">${c.name}</span>
-          <span class="score" style="color:${bandColor(item.score || 0)}">${item.score != null ? item.score : '-'}</span>
+          <span class="score" style="color:${bandColor(item.score || 0)}">${item.score != null ? escapeHtml(item.score) : '-'}</span>
         </div>
-        <div class="comment">${item.comment || ''}</div>
+        <div class="comment">${escapeHtml(item.comment)}</div>
       </div>`;
     });
     html += '</div>';
 
     if (data.overall_comment) {
-      html += `<div class="overall-comment"><b>Overall feedback:</b><br>${data.overall_comment}</div>`;
+      html += `<div class="overall-comment"><b>Overall feedback:</b><br>${escapeHtml(data.overall_comment)}</div>`;
     }
+
+    html += '<div class="corrections-section"><h3>Specific mistakes &amp; suggested fixes</h3>';
+    if (Array.isArray(data.corrections) && data.corrections.length > 0) {
+      data.corrections.forEach(c => {
+        html += `<div class="correction-item">
+          <span class="type-tag">${escapeHtml(c.type || 'Issue')}</span><br>
+          <span class="correction-original">${escapeHtml(c.original)}</span><span class="correction-arrow">&rarr;</span><span class="correction-suggestion">${escapeHtml(c.suggestion)}</span>
+          <div class="correction-explanation">${escapeHtml(c.explanation)}</div>
+        </div>`;
+      });
+    } else {
+      html += '<div class="no-corrections">No specific line-level issues flagged.</div>';
+    }
+    html += '</div>';
+
     html += '<div class="ai-note">AI-generated estimate for practice purposes only — real IELTS markers may score differently.</div>';
 
     feedbackArea.innerHTML = html;
@@ -752,14 +801,17 @@
     const taskNum = taskNumber.value;
     const promptText = promptTextCheck;
 
-    const systemInstruction = `You are an experienced IELTS Writing examiner. Assess the given IELTS Writing Task ${taskNum} response strictly using the official IELTS band descriptors (bands 1-9, in 0.5 increments) across these four criteria: Task ${taskNum === '1' ? 'Achievement' : 'Response'}, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Be honest and realistic, not inflated. Respond with ONLY a valid JSON object, no markdown fences, no preamble, no extra text, matching exactly this shape:
+    const systemInstruction = `You are an experienced IELTS Writing examiner. Assess the given IELTS Writing Task ${taskNum} response strictly using the official IELTS band descriptors (bands 1-9, in 0.5 increments) across these four criteria: Task ${taskNum === '1' ? 'Achievement' : 'Response'}, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. Be honest and realistic, not inflated. In addition, identify the 6-12 most important specific mistakes in the essay (grammar errors, wrong word choice, awkward phrasing, weak cohesion/linking, unclear or unsupported ideas, spelling, punctuation, etc.). For each mistake, quote the EXACT short phrase from the essay (a few words, not the whole sentence) so it can be matched against the original text, give a corrected version of that same short phrase, and briefly explain why it's an issue. Prioritize the mistakes that most affect the band score, not every minor slip. Respond with ONLY a valid JSON object, no markdown fences, no preamble, no extra text, matching exactly this shape:
 {
   "task_achievement": {"score": number, "comment": "2-3 sentence feedback"},
   "coherence_cohesion": {"score": number, "comment": "2-3 sentence feedback"},
   "lexical_resource": {"score": number, "comment": "2-3 sentence feedback"},
   "grammar_accuracy": {"score": number, "comment": "2-3 sentence feedback"},
   "overall_band": number,
-  "overall_comment": "3-5 sentence holistic summary with the top 2-3 things to improve"
+  "overall_comment": "3-5 sentence holistic summary with the top 2-3 things to improve",
+  "corrections": [
+    {"type": "Grammar" | "Vocabulary" | "Cohesion" | "Task Response" | "Spelling" | "Punctuation", "original": "exact short phrase quoted from the essay", "suggestion": "corrected version of that phrase", "explanation": "1 short sentence on why"}
+  ]
 }`;
 
     const userMessage = `Essay prompt: ${promptText}\n\nWord count target: ${min > 0 ? min : 'N/A'} minimum\nActual word count: ${wordCount}\n\nEssay:\n${essayText}`;
@@ -789,7 +841,7 @@
               { role: "user", content: userMessage }
             ],
             temperature: 0.3,
-            max_tokens: 1500,
+            max_tokens: 2500,
             response_format: { type: "json_object" }
           })
         },
