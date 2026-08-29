@@ -702,6 +702,34 @@
     feedbackArea.innerHTML = html;
   }
 
+  // Retry helper: retries on 503 (model overloaded), 429 (rate limited), and network-level failures
+  // (e.g. "Failed to fetch") with exponential backoff + jitter. Other error statuses (401, 400, etc.)
+  // are returned immediately since retrying won't help.
+  async function fetchWithRetry(url, options, { maxRetries = 3, baseDelayMs = 1200 } = {}) {
+    let lastError = null;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, options);
+        if (response.status !== 503 && response.status !== 429) {
+          return response;
+        }
+        if (attempt === maxRetries) {
+          return response; // out of retries, let caller handle the final error response
+        }
+      } catch (err) {
+        // Network-level failure (offline, blocked by extension/firewall, DNS, etc.)
+        lastError = err;
+        if (attempt === maxRetries) {
+          throw err;
+        }
+      }
+      const delay = baseDelayMs * Math.pow(2, attempt) + Math.random() * 300;
+      markBtn.textContent = `Retrying (${attempt + 1}/${maxRetries})...`;
+      await new Promise(r => setTimeout(r, delay));
+    }
+    if (lastError) throw lastError;
+  }
+
   markBtn.addEventListener('click', async () => {
     const essayText = essay.value.trim();
     if (essayText.length === 0) {
@@ -747,7 +775,7 @@
       }
 
       const fullPrompt = systemInstruction + '\n\n' + userMessage;
-      const response = await fetch(
+      const response = await fetchWithRetry(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
         {
           method: "POST",
@@ -759,12 +787,16 @@
             contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
             generationConfig: { maxOutputTokens: 8000, temperature: 0.3, responseMimeType: "application/json" }
           })
-        }
+        },
+        { maxRetries: 3, baseDelayMs: 1200 }
       );
 
       if (!response.ok) {
         const errBody = await response.text().catch(() => '');
-        throw new Error('API request failed: ' + response.status + (errBody ? ' — ' + errBody.slice(0, 200) : ''));
+        const retryHint = (response.status === 503 || response.status === 429)
+          ? ' — retried automatically but the service is still overloaded.'
+          : '';
+        throw new Error('API request failed: ' + response.status + retryHint + (errBody ? ' — ' + errBody.slice(0, 200) : ''));
       }
       const data = await response.json();
       const candidate = data.candidates && data.candidates[0];
@@ -777,7 +809,9 @@
       renderFeedback(parsed);
     } catch (err) {
       const savedKey = localStorage.getItem(API_KEY_STORAGE);
-      if (!savedKey) {
+      if (err.message === 'Failed to fetch') {
+        feedbackArea.innerHTML = `<div class="ai-error">Could not reach Google's API (network error). This usually means: you're offline, an ad blocker or browser extension is blocking the request, or your network/firewall is blocking generativelanguage.googleapis.com. Check your connection and try disabling ad blockers for this page, then try again.</div>`;
+      } else if (!savedKey) {
         apiSettings.setAttribute('open', 'true');
         feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Add your free Gemini API key in the "AI Feedback settings" panel above, then try again.</div>`;
       } else {
