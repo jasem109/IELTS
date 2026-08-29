@@ -206,13 +206,13 @@
   </div>
 
   <details class="api-settings" id="apiSettings">
-    <summary>AI Feedback settings (free Google Gemini API key)</summary>
-    <p>To use "Get AI Feedback", add a free Google Gemini API key — no credit card needed. Get one at
-      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.
-      Your key is stored only in this browser's local storage and is sent directly from your browser to Google's API — never to us.
+    <summary>AI Feedback settings (free Groq API key)</summary>
+    <p>To use "Get AI Feedback", add a free Groq API key — no credit card needed. Get one at
+      <a href="https://console.groq.com/keys" target="_blank" rel="noopener">console.groq.com/keys</a>.
+      Your key is stored only in this browser's local storage and is sent directly from your browser to Groq's API — never to us.
       The free tier gives you a generous daily quota of essay checks at no cost.</p>
     <div class="row">
-      <input type="password" id="apiKeyInput" placeholder="AIza...">
+      <input type="password" id="apiKeyInput" placeholder="gsk_...">
       <button class="btn-secondary" id="saveKeyBtn" type="button">Save key</button>
       <button class="btn-secondary" id="clearKeyBtn" type="button">Remove key</button>
     </div>
@@ -345,7 +345,7 @@
 
   const STORAGE_KEY = 'ielts_draft_v1';
   const DARK_KEY = 'ielts_dark_v1';
-  const API_KEY_STORAGE = 'ielts_gemini_key_v1';
+  const API_KEY_STORAGE = 'ielts_groq_key_v1';
 
   let writingStartTime = null;
   let chartImageDataUrl = null;
@@ -630,11 +630,11 @@
   function refreshKeyStatus() {
     const saved = localStorage.getItem(API_KEY_STORAGE);
     if (saved) {
-      keyStatus.innerHTML = '<span class="key-saved">✓ Gemini API key saved in this browser</span>';
+      keyStatus.innerHTML = '<span class="key-saved">✓ Groq API key saved in this browser</span>';
       apiKeyInput.placeholder = '•••••••• (key saved — enter a new one to replace)';
     } else {
       keyStatus.innerHTML = '<span class="key-missing">No API key saved yet</span>';
-      apiKeyInput.placeholder = 'AIza...';
+      apiKeyInput.placeholder = 'gsk_...';
     }
   }
 
@@ -768,24 +768,29 @@
       const savedKey = localStorage.getItem(API_KEY_STORAGE);
       if (!savedKey) {
         apiSettings.setAttribute('open', 'true');
-        feedbackArea.innerHTML = '<div class="ai-error">Add a free Google Gemini API key in the "AI Feedback settings" panel above, then try again.</div>';
+        feedbackArea.innerHTML = '<div class="ai-error">Add a free Groq API key in the "AI Feedback settings" panel above, then try again.</div>';
         markBtn.disabled = false;
         markBtn.textContent = 'Get AI Feedback';
         return;
       }
 
-      const fullPrompt = systemInstruction + '\n\n' + userMessage;
       const response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+        'https://api.groq.com/openai/v1/chat/completions',
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "x-goog-api-key": savedKey
+            "Authorization": `Bearer ${savedKey}`
           },
           body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
-            generationConfig: { maxOutputTokens: 8000, temperature: 0.3, responseMimeType: "application/json" }
+            model: "llama-3.3-70b-versatile",
+            messages: [
+              { role: "system", content: systemInstruction },
+              { role: "user", content: userMessage }
+            ],
+            temperature: 0.3,
+            max_tokens: 1500,
+            response_format: { type: "json_object" }
           })
         },
         { maxRetries: 3, baseDelayMs: 1200 }
@@ -799,23 +804,22 @@
         throw new Error('API request failed: ' + response.status + retryHint + (errBody ? ' — ' + errBody.slice(0, 200) : ''));
       }
       const data = await response.json();
-      const candidate = data.candidates && data.candidates[0];
-      if (!candidate || !candidate.content || !candidate.content.parts) {
-        throw new Error('No response returned (the essay may have triggered a safety filter, or the response was cut off)');
+      const content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      if (!content) {
+        throw new Error('No response content returned from Groq');
       }
-      const textBlocks = candidate.content.parts.map(p => p.text || '').join('\n');
-      const cleaned = textBlocks.replace(/```json|```/g, '').trim();
+      const cleaned = content.replace(/```json|```/g, '').trim();
       const parsed = JSON.parse(cleaned);
       renderFeedback(parsed);
     } catch (err) {
       const savedKey = localStorage.getItem(API_KEY_STORAGE);
       if (err.message === 'Failed to fetch') {
-        feedbackArea.innerHTML = `<div class="ai-error">Could not reach Google's API (network error). This usually means: you're offline, an ad blocker or browser extension is blocking the request, or your network/firewall is blocking generativelanguage.googleapis.com. Check your connection and try disabling ad blockers for this page, then try again.</div>`;
+        feedbackArea.innerHTML = `<div class="ai-error">Could not reach Groq's API (network error). This usually means: you're offline, an ad blocker or browser extension is blocking the request, or your network/firewall is blocking api.groq.com. Check your connection and try disabling ad blockers for this page, then try again.</div>`;
       } else if (!savedKey) {
         apiSettings.setAttribute('open', 'true');
-        feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Add your free Gemini API key in the "AI Feedback settings" panel above, then try again.</div>`;
+        feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Add your free Groq API key in the "AI Feedback settings" panel above, then try again.</div>`;
       } else {
-        feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Double-check your API key in the settings panel above, or you may have hit the free daily quota — try again later or check <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">your Gemini usage</a>.</div>`;
+        feedbackArea.innerHTML = `<div class="ai-error">Could not get AI feedback (${err.message}). Double-check your API key in the settings panel above, or you may have hit the free daily quota — try again later or check <a href="https://console.groq.com/keys" target="_blank" rel="noopener">your Groq usage</a>.</div>`;
       }
     } finally {
       markBtn.disabled = false;
